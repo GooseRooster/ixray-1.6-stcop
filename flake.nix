@@ -1,6 +1,18 @@
 {
-  # IX-Ray 1.6 STCOP — self-contained Nix devShell for the Linux build.
+  # IX-Ray 1.6 STCOP — Nix devShells for the two supported build flows.
   #
+  # ── Intended flow ──────────────────────────────────────────────────────
+  # 1. `nix develop` (default shell, native Linux ELF):
+  #      Tools + engine core libraries (xrCore, xrSound, xrNetServer) and
+  #      the compressor. The playable engine itself is NOT buildable natively
+  #      yet — xrAbstractions and above include d3d9/d3d11 headers and
+  #      Windows APIs unconditionally, which needs real porting work.
+  # 2. `nix develop .#winCross` (Windows x64 cross-compile, MSVC ABI):
+  #      Builds the COMPLETE game (xrEngine.exe + xrGame + R1/R2/R4 render
+  #      DLLs) from Linux — the artifacts run on Windows and under
+  #      Wine/Proton. This is the intended path for playing/testing.
+  #
+  # ── Default (native Linux) shell ───────────────────────────────────────
   # Provides:
   #   * clang 18 + libc++ + lld — matches the Linux CI (build-utilities.yml)
   #     and satisfies the -stdlib=libc++ / -fuse-ld=lld flags hardcoded in
@@ -32,17 +44,13 @@
   #   * direnv users:  `direnv allow`   (auto-activates via .envrc)
   #   * everyone else: `nix develop`
   #
-  # What builds on Linux today (matching upstream's Linux CI scope — the
-  # playable engine itself is still Windows-only upstream: no GL renderer,
-  # D3D-only renders, xrAbstractions has unported code):
+  # Native build (tools + engine core libs only — see "Intended flow" above):
   #   cmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF
-  #   cmake --build build --target xrCore xrSound xrCompress
+  #   cmake --build build --target xrCore xrSound xrNetServer xrCompress
   #
   # Note: the first configure needs network (NuGet restore + FetchContent for
   # SDL3 / yaml-cpp / nvtt / openal-soft). direnv/nix develop don't sandbox,
   # so this works out of the box.
-  # Cross-compilation to Windows x64 (MSVC ABI) from Linux — see the
-  # winCross shell below. The Linux shell above builds native ELF binaries.
   description = "IX-Ray 1.6 STCOP dev shells";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -150,21 +158,28 @@
               # aren't patchelf'd like nixpkgs derivations).
               export LD_LIBRARY_PATH="${llvm.libcxx}/lib:${pkgs.tbb}/lib:${pkgs.lzo}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
-              echo "IX-Ray dev shell: clang $(clang --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'), cmake $(cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+              echo "IX-Ray dev shell (native Linux — tools + engine core libs; the playable engine needs the winCross shell):"
+              echo "  clang $(clang --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'), cmake $(cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
               echo "  cmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF"
-              echo "  cmake --build build --target xrCompress   # full 'ALL' does not build yet: see notes below"
+              echo "  cmake --build build --target xrCore xrSound xrNetServer xrCompress"
             '';
           };
 
-          # Windows x64 cross-compile shell (MSVC ABI, no MinGW, no Wine SDK):
+          # ── Windows x64 cross-compile shell (MSVC ABI) — the intended flow
+          # for building the playable game from Linux:
           # clang-cl + lld-link + llvm-rc, with the MSVC CRT and Windows SDK
           # provisioned by `xwin` on first entry (cached in
           # ~/.cache/ixray/msvc-sdk, override with XRAY_MSVC_SDK).
           #
-          #   cmake -B build-win -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake
-          #   cmake --build build-win
+          #   cmake -B build-win -G "Ninja Multi-Config" \
+          #         -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake
+          #   cmake --build build-win --config Release --target xrEngine
           #
-          # Artifacts are regular Windows .exe/.dll — run via Proton/Wine.
+          # Output dir: build-win/bin/Release/ — xrEngine.exe + xrGame.dll +
+          # R1/R2/R4 render DLLs + all third-party DLLs (complete runtime).
+          # Artifacts are regular Windows .exe/.dll — run via Proton/Wine
+          # (Linux gamers: point Proton at the game install with these
+          # binaries copied over bin/).
           # clangd also benefits: compile_commands.json from this build
           # carries the clang-cl driver flags, so IntelliSense sees the real
           # Windows SDK/STL headers.
@@ -229,9 +244,11 @@
               command -v lld-link >/dev/null && ln -sf "$(command -v lld-link)" "$binshim/link.exe"
               export PATH="$binshim:$PATH"
 
-              echo "IX-Ray winCross shell: $(clang-cl --version | head -n1), lld-link $(lld-link --version | head -n1), SDK: $XRAY_MSVC_SDK"
+              echo "IX-Ray winCross shell (Windows x64 MSVC cross-compile — the playable game):"
+              echo "  $(clang-cl --version | head -n1), lld-link $(lld-link --version | head -n1), SDK: $XRAY_MSVC_SDK"
               echo "  cmake -B build-win -G 'Ninja Multi-Config' -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake"
-              echo "  cmake --build build-win --config Release --target xrEngine   # full engine cross-build works"
+              echo "  cmake --build build-win --config Release --target xrEngine"
+              echo "  → build-win/bin/Release/  (copy contents over the game's bin/ for Proton)"
             '';
           };
         });

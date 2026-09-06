@@ -27,10 +27,15 @@
 
 # ─── Personal aliases / functions ──────────────────────────────────────────
 #
-# Configure — D3D renderers (R1/R2) must stay off on Linux, they're
-# Windows-only (see upstream Linux preset Engine-Base-Linux-NonUnity):
-# alias configure='cmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF'
+# The two build flows (see flake.nix header for the full story):
 #
-# What actually builds on Linux today (engine libs + compressor; the playable
-# engine itself is still Windows-only upstream):
-# alias build-compressor='cmake --build build --target xrCompress'
+# Native Linux — tools + engine core libs only. D3D renderers
+# (R1/R2) must stay off; the playable engine is not buildable natively yet:
+#   alias configure='cmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF'
+#   alias build-compressor='cmake --build build --target xrCore xrSound xrNetServer xrCompress'
+#
+# Windows x64 cross-compile (winCross shell — the full playable game):
+#   alias configure-win='cmake -B build-win -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake'
+#   alias build-engine='cmake --build build-win --config Release --target xrEngine'
+#   # Output: build-win/bin/Release/ — copy its contents over the game's bin/
+#   # directory for testing via Proton.
