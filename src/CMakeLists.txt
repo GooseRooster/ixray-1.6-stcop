@@ -29,7 +29,7 @@ if(NOT IXRAY_COMPRESSOR_ONLY)
         add_subdirectory("Layers/xrRenderPC_R2")
     endif()
 
-    if(IXR_TEST_CI)
+    if(WIN32 AND IXR_TEST_CI)
         add_subdirectory("Layers/xrRenderPC_R4")
         add_subdirectory("xrGame")
     endif()
@@ -40,7 +40,7 @@ if(IXRAY_MP AND NOT IXRAY_COMPRESSOR_ONLY AND IXR_TEST_CI)
     add_subdirectory("xrGameSpy")
 endif()
 
-if(NOT IXRAY_COMPRESSOR_ONLY AND IXR_TEST_CI)
+if(WIN32 AND NOT IXRAY_COMPRESSOR_ONLY AND IXR_TEST_CI)
     add_subdirectory("xrPlay")
 endif()
 
@@ -56,7 +56,7 @@ if(NOT IXRAY_COMPRESSOR_ONLY)
     set_target_properties(xrScripts PROPERTIES ${IXRAY_FOLDER_ENGINE})
     set_target_properties(xrUI PROPERTIES ${IXRAY_FOLDER_ENGINE})
 
-    if(IXR_TEST_CI)
+    if(WIN32 AND IXR_TEST_CI)
         set_target_properties(xrGame PROPERTIES ${IXRAY_FOLDER_GAME})
     endif()
     

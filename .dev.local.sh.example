@@ -27,8 +27,10 @@
 
 # ─── Personal aliases / functions ──────────────────────────────────────────
 #
-# Configure with the project's Linux preset (GL renderer, Ninja Multi-Config):
-# alias configure='cmake --preset Engine-Base-Linux-NonUnity'
+# Configure — D3D renderers (R1/R2) must stay off on Linux, they're
+# Windows-only (see upstream Linux preset Engine-Base-Linux-NonUnity):
+# alias configure='cmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF'
 #
-# Quick build of just the compressor (matches the Linux CI):
+# What actually builds on Linux today (engine libs + compressor; the playable
+# engine itself is still Windows-only upstream):
 # alias build-compressor='cmake --build build --target xrCompress'

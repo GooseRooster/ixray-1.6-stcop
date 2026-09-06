@@ -111,28 +111,45 @@ target_link_libraries(xrAbstractions PUBLIC luabind)
 target_link_libraries(xrAbstractions PUBLIC xrNetServer)
 target_link_libraries(xrAbstractions PUBLIC imgui)
 
-target_link_libraries(xrAbstractions PRIVATE "Winmm.lib")
-target_link_libraries(xrAbstractions PRIVATE "Vfw32.lib")
-target_link_libraries(xrAbstractions PRIVATE "d3d9.lib")
-target_link_libraries(xrAbstractions PRIVATE "d3d11.lib")
-target_link_libraries(xrAbstractions PRIVATE "dxgi.lib")
+if(WIN32)
+    target_link_libraries(xrAbstractions PRIVATE "Winmm.lib")
+    target_link_libraries(xrAbstractions PRIVATE "Vfw32.lib")
+    target_link_libraries(xrAbstractions PRIVATE "d3d9.lib")
+    target_link_libraries(xrAbstractions PRIVATE "d3d11.lib")
+    target_link_libraries(xrAbstractions PRIVATE "dxgi.lib")
+else()
+    find_package(Freetype REQUIRED)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(THEORA REQUIRED IMPORTED_TARGET theora)
+endif()
 
-# Copy binaries
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ENGINE_THRA}native/bin/${CMAKE_VS_PLATFORM_NAME}/Release/libtheora.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ENGINE_FREETYPE}native/bin/${CMAKE_VS_PLATFORM_NAME}/Release/freetype.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/
-)
+if(WIN32)
+    # Copy binaries
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ENGINE_THRA}native/bin/${CMAKE_VS_PLATFORM_NAME}/Release/libtheora.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ENGINE_FREETYPE}native/bin/${CMAKE_VS_PLATFORM_NAME}/Release/freetype.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/
+    )
 
-## FreeType
-target_link_libraries(xrAbstractions PRIVATE ${ENGINE_FREETYPE}native/lib/${CMAKE_VS_PLATFORM_NAME}/Release/freetype.lib)
-target_include_directories(xrAbstractions PRIVATE "${ENGINE_FREETYPE}native/include/")
+    ## FreeType
+    target_link_libraries(xrAbstractions PRIVATE ${ENGINE_FREETYPE}native/lib/${CMAKE_VS_PLATFORM_NAME}/Release/freetype.lib)
+    target_include_directories(xrAbstractions PRIVATE "${ENGINE_FREETYPE}native/include/")
 
-## Theora
-target_link_libraries(xrAbstractions PUBLIC ${ENGINE_THRA}native/lib/${CMAKE_VS_PLATFORM_NAME}/Release/libtheora.lib)
-target_include_directories(xrAbstractions PUBLIC "${ENGINE_THRA}/native/include/")
+    ## Theora
+    target_link_libraries(xrAbstractions PUBLIC ${ENGINE_THRA}native/lib/${CMAKE_VS_PLATFORM_NAME}/Release/libtheora.lib)
+    target_include_directories(xrAbstractions PUBLIC "${ENGINE_THRA}/native/include/")
 
-## OGG
-target_link_libraries(xrAbstractions PUBLIC ${SND_OGG}/native/lib/${CMAKE_VS_PLATFORM_NAME}/Release/libogg.lib)
-target_include_directories(xrAbstractions PUBLIC "${SND_OGG}/native/include/")
+    ## OGG
+    target_link_libraries(xrAbstractions PUBLIC ${SND_OGG}/native/lib/${CMAKE_VS_PLATFORM_NAME}/Release/libogg.lib)
+    target_include_directories(xrAbstractions PUBLIC "${SND_OGG}/native/include/")
+else()
+    ## FreeType
+    target_link_libraries(xrAbstractions PRIVATE Freetype::Freetype)
+
+    ## Theora
+    target_link_libraries(xrAbstractions PUBLIC PkgConfig::THEORA)
+
+    ## OGG
+    target_link_libraries(xrAbstractions PUBLIC Ogg::ogg)
+endif()
 
 target_include_directories(xrAbstractions PUBLIC "${RENDERDOC_API}")

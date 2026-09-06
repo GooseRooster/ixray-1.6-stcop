@@ -78,3 +78,6 @@ cmake-build*/
 linux/sal.h
 *.TMP
 util/wrap_config.json
+
+#clangd
+.cache/

@@ -70,7 +70,7 @@ if(IXRAY_MP)
 endif()
 
 # MySQL Connector
-if (IXRAY_MP_SQL)
+if (IXRAY_MP AND IXRAY_MP_SQL)
     target_include_directories(xrNetServer PUBLIC "${MYSQLCONNECTOR}include/")
     target_link_libraries(xrNetServer PUBLIC "${MYSQLCONNECTOR}lib/mysqlcppconn.lib")
     add_custom_command(TARGET ${PROJECT_NAME} 

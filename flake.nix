@@ -32,13 +32,15 @@
   #   * direnv users:  `direnv allow`   (auto-activates via .envrc)
   #   * everyone else: `nix develop`
   #
-  # Configure + build (GL renderer preset; D3D renderers are Windows-only):
-  #   cmake -B build -G Ninja
-  #   cmake --build build
+  # What builds on Linux today (matching upstream's Linux CI scope — the
+  # playable engine itself is still Windows-only upstream: no GL renderer,
+  # D3D-only renders, xrAbstractions has unported code):
+  #   cmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF
+  #   cmake --build build --target xrCore xrSound xrCompress
   #
   # Note: the first configure needs network (NuGet restore + FetchContent for
-  # SDL3 / yaml-cpp / nvtt). direnv/nix develop don't sandbox, so this works
-  # out of the box.
+  # SDL3 / yaml-cpp / nvtt / openal-soft). direnv/nix develop don't sandbox,
+  # so this works out of the box.
   description = "IX-Ray 1.6 STCOP Linux dev shell";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -81,13 +83,17 @@
               util-linux.dev # libuuid
               openssl
               protobuf
+              freetype
+              libtheora
 
-              # Audio
+              # Audio. Deliberately NO openal-soft here: cmake/modules/
+              # FindOpenalSoft.cmake expects to FetchContent openal-soft on
+              # Linux (its target is named `OpenAL`); a system openal would
+              # satisfy find_package(OpenAL) and break the xrSound link.
               libogg
               libvorbis
               opus
               speexdsp
-              openal-soft
 
               # SDL3 (built via FetchContent) dependency set
               alsa-lib
@@ -143,7 +149,8 @@
               export LD_LIBRARY_PATH="${llvm.libcxx}/lib:${pkgs.tbb}/lib:${pkgs.lzo}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
               echo "IX-Ray dev shell: clang $(clang --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'), cmake $(cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-              echo "  cmake -B build -G Ninja && cmake --build build"
+              echo "  cmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF"
+              echo "  cmake --build build --target xrCompress   # full 'ALL' does not build yet: see notes below"
             '';
           };
         });
