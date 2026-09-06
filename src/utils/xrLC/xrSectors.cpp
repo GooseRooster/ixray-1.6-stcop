@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Build.h"
-#include "sector.h"
+#include "Sector.h"
 #include "OGF_Face.h"
 xr_vector<CSector*>	g_sectors;
 

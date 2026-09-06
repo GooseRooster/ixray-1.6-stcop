@@ -4,7 +4,7 @@
 
 #include "stdafx.h"
 #include "Build.h"
-#include "sector.h"
+#include "Sector.h"
 #include "OGF_Face.h"
 #include <execution>
 //////////////////////////////////////////////////////////////////////
