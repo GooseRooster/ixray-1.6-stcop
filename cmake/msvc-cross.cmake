@@ -34,6 +34,10 @@ set(CMAKE_RC_COMPILER llvm-rc CACHE FILEPATH "")
 set(CMAKE_MT llvm-mt CACHE FILEPATH "")
 set(CMAKE_AR llvm-lib CACHE FILEPATH "")
 set(CMAKE_LINKER lld-link CACHE FILEPATH "")
+# Note: resource sources are UTF-8 with BOM and ASCII-safe strings —
+# llvm-rc has no codepage auto-detection (rc.exe does), and CMake shares
+# CMAKE_RC_FLAGS between the clang-cl preprocess step and llvm-rc itself,
+# so llvm-rc-only flags (/c 65001) cannot be passed portably.
 
 # The CMake scripts reference VS-generator variables for NuGet/SDK paths
 # (e.g. packages/.../native/lib/${CMAKE_VS_PLATFORM_NAME}/Release/*.lib).

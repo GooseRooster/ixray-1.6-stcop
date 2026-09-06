@@ -5,6 +5,8 @@
 // The NVAPI SDK header is not bundled with the repository; only a handful of
 // identifiers from it are used here, so provide them locally.
 #define NVAPI_OK 0
+#define NVAPI_MAX_PHYSICAL_GPUS 64
+#define NVAPI_MAX_LOGICAL_GPUS 64
 using NvU32 = unsigned int;
 
 #define NVAPI_MAX_USAGES_PER_GPU  34

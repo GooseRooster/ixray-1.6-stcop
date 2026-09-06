@@ -230,8 +230,8 @@
               export PATH="$binshim:$PATH"
 
               echo "IX-Ray winCross shell: $(clang-cl --version | head -n1), lld-link $(lld-link --version | head -n1), SDK: $XRAY_MSVC_SDK"
-              echo "  cmake -B build-win -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake"
-              echo "  cmake --build build-win"
+              echo "  cmake -B build-win -G 'Ninja Multi-Config' -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake"
+              echo "  cmake --build build-win --config Release --target xrEngine   # full engine cross-build works"
             '';
           };
         });
