@@ -669,7 +669,7 @@ void RenderToolsOMFEditorWindow()
 		if (g_omf_editor.is_file_loaded)
 		{
 			R_ASSERT2(g_omf_editor.omf, "must be initialized");
-			ImGui::TextWrapped("Loaded file: [%s]", g_omf_editor.path);
+			ImGui::TextWrapped("Loaded file: [%s]", g_omf_editor.path.c_str());
 			ImGui::Separator();
 
 			if (ImGui::BeginTable("##ToolsInGameImGui_OMFEditor_Data_Header", 2))

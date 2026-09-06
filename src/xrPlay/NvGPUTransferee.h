@@ -2,7 +2,10 @@
 
 #pragma once
 #include "../xrEngine/ICore_GPU.h"
-#include <NVAPI\nvapi.h>
+// The NVAPI SDK header is not bundled with the repository; only a handful of
+// identifiers from it are used here, so provide them locally.
+#define NVAPI_OK 0
+using NvU32 = unsigned int;
 
 #define NVAPI_MAX_USAGES_PER_GPU  34
 class CNvReader :

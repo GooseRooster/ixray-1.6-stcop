@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ai_monster_effector.h"
+#include "../../CharacterPhysicsSupport.h"
 #include "Actor.h"
 
 #define TEMPLATE_SPECIALIZATION template <\

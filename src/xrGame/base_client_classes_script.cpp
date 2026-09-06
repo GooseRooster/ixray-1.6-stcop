@@ -74,7 +74,7 @@ template<> void class_exporter<CObject>::script_register		(lua_State *L)
 	];
 }
 
-template<> void class_exporter<IRender_Visual>::script_register		(lua_State *L)
+template<> void class_exporter<IRenderVisual>::script_register		(lua_State *L)
 {
 	module(L)
 	[
