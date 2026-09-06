@@ -72,6 +72,7 @@ cmake-build*/
 # Nix devshell / direnv
 /.dev.local.sh
 /.direnv/
+/.devshell-helpers/
 
 # Optick
 *.opt

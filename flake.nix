@@ -153,6 +153,20 @@
               # CMake reads this env var without any repo CMake changes.
               export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
+              # ── Project helper commands, as PATH scripts. direnv/nix
+              #    develop can only carry exported env vars across shell
+              #    boundaries, NOT aliases/functions (and the hook runs in
+              #    bash regardless of the user's shell) — so zsh/fish users
+              #    would never see them. Executables on PATH work everywhere.
+              #    Project-local dir; gitignored; personalize via PATH in
+              #    .dev.local.sh if you want your own versions first.
+              helpers=".devshell-helpers"
+              mkdir -p "$helpers"
+              printf '#!/usr/bin/env bash\ncmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF "$@"\n' > "$helpers/ixray-configure"
+              printf '#!/usr/bin/env bash\ncmake --build build --target xrCore xrSound xrNetServer xrCompress "$@"\n' > "$helpers/ixray-build"
+              chmod +x "$helpers"/ixray-*
+              export PATH="$PWD/$helpers:$PATH"
+
               # Runtime loader path for libs the build links against but the
               # nix clang wrapper doesn't embed RPATHs for (dev-shell builds
               # aren't patchelf'd like nixpkgs derivations).
@@ -160,8 +174,7 @@
 
               echo "IX-Ray dev shell (native Linux — tools + engine core libs; the playable engine needs the winCross shell):"
               echo "  clang $(clang --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'), cmake $(cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-              echo "  cmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF"
-              echo "  cmake --build build --target xrCore xrSound xrNetServer xrCompress"
+              echo "  ixray-configure && ixray-build   (PATH scripts in .devshell-helpers/)"
             '';
           };
 
@@ -244,10 +257,18 @@
               command -v lld-link >/dev/null && ln -sf "$(command -v lld-link)" "$binshim/link.exe"
               export PATH="$binshim:$PATH"
 
+              # ── Project helper commands (see the native shell's comment —
+              #    PATH scripts instead of aliases, works in any shell).
+              helpers=".devshell-helpers"
+              mkdir -p "$helpers"
+              printf '#!/usr/bin/env bash\ncmake -B build-win -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake "$@"\n' > "$helpers/ixray-configure-win"
+              printf '#!/usr/bin/env bash\ncmake --build build-win --config Release "$@"\n' > "$helpers/ixray-build-win"
+              chmod +x "$helpers"/ixray-*
+              export PATH="$PWD/$helpers:$PATH"
+
               echo "IX-Ray winCross shell (Windows x64 MSVC cross-compile — the playable game):"
               echo "  $(clang-cl --version | head -n1), lld-link $(lld-link --version | head -n1), SDK: $XRAY_MSVC_SDK"
-              echo "  cmake -B build-win -G 'Ninja Multi-Config' -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake"
-              echo "  cmake --build build-win --config Release --target xrEngine"
+              echo "  ixray-configure-win && ixray-build-win"
               echo "  → build-win/bin/Release/  (copy contents over the game's bin/ for Proton)"
             '';
           };

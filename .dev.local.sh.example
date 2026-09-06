@@ -27,15 +27,18 @@
 
 # ─── Personal aliases / functions ──────────────────────────────────────────
 #
-# The two build flows (see flake.nix header for the full story):
+# NOTE: aliases/functions defined HERE (or in the flake's shellHook) do NOT
+# survive direnv's `use flake` — nix-direnv only carries exported env vars
+# into your shell. That's why the flake installs the project helpers as
+# PATH scripts (in .devshell-helpers/, gitignored) instead:
 #
-# Native Linux — tools + engine core libs only. D3D renderers
-# (R1/R2) must stay off; the playable engine is not buildable natively yet:
-#   alias configure='cmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF'
-#   alias build-compressor='cmake --build build --target xrCore xrSound xrNetServer xrCompress'
+#   native Linux shell:  ixray-configure, ixray-build
+#   winCross shell:      ixray-configure-win, ixray-build-win
 #
-# Windows x64 cross-compile (winCross shell — the full playable game):
-#   alias configure-win='cmake -B build-win -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake'
-#   alias build-engine='cmake --build build-win --config Release --target xrEngine'
-#   # Output: build-win/bin/Release/ — copy its contents over the game's bin/
-#   # directory for testing via Proton.
+# For your OWN aliases, put them in your shell's rc file, or define
+# executables and prepend a personal dir to PATH here, e.g.:
+#
+#   mkdir -p "$HOME/.local/bin"
+#   export PATH="$HOME/.cache/ixray/bin:$PATH"
+#
+# Or override project helpers by putting your own dirs first on PATH.
