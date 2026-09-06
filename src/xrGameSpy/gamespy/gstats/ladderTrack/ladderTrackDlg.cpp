@@ -1,7 +1,7 @@
 // ladderTrackDlg.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ladderTrack.h"
 #include "ladderTrackDlg.h"
 #include "WaitingDlg.h"

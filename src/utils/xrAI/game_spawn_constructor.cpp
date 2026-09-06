@@ -6,7 +6,7 @@
 //	Description : Game spawn constructor
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "game_spawn_constructor.h"
 #include "object_broker.h"
 #include "level_spawn_constructor.h"

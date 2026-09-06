@@ -6,7 +6,7 @@
 //	Description : Material manager
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "material_manager.h"
 #include "alife_space.h"
 #include "PHMovementControl.h"

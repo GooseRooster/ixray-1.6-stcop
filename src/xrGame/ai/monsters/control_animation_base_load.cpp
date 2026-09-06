@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "control_animation_base.h"
 
 void CControlAnimationBase::AddAnim(EMotionAnim ma, std::pair<LPCSTR, bool> target, int s_id, SVelocityParam* vel, EPState p_s, std::pair<LPCSTR, bool> fx_front, std::pair<LPCSTR, bool> fx_back, std::pair<LPCSTR, bool> fx_left, std::pair<LPCSTR, bool> fx_right)

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "game_sv_deathmatch.h"
 #include "xrServer_Objects_ALife_Monsters.h"
 #include "Level.h"

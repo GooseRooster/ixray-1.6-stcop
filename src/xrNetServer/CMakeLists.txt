@@ -46,7 +46,7 @@ endif()
 target_link_libraries(xrNetServer PUBLIC xrCore)
 
 if (WIN32)
-    target_link_libraries(xrNetServer PRIVATE "Ws2_32.lib")
+    target_link_libraries(xrNetServer PRIVATE "ws2_32.lib")
     target_link_libraries(xrNetServer PRIVATE "dxguid.lib")
 endif()
 

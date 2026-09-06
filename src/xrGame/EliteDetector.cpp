@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "EliteDetector.h"
 #include "player_hud.h"
 #include "../Include/xrRender/UIRender.h"

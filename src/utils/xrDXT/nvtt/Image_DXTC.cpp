@@ -12,7 +12,7 @@ Comments:
 
 ******************************************************************************/
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #pragma warning(disable: 4312)
 #include "Image_DXTC.h"
 

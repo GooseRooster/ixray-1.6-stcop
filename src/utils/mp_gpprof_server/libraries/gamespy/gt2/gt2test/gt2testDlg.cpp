@@ -1,7 +1,7 @@
 // gt2testDlg.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "gt2test.h"
 #include "gt2testDlg.h"
 

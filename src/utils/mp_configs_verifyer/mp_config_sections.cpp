@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "mp_config_sections.h"
-//#include "weapon.h"
+//#include "Weapon.h"
 
 namespace mp_anticheat
 {

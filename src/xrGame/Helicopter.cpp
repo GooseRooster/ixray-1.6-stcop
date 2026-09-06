@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "helicopter.h"
 #include "xrServer_Objects_ALife.h"
@@ -9,7 +9,7 @@
 #include "game_object_space.h"
 #include "script_game_object.h"
 #include "../xrEngine/LightAnimLibrary.h"
-//#include "physicscommon.h"
+//#include "PhysicsCommon.h"
 #include "../../xrUI/ui_base.h"
 //50fps fixed
 float STEP=0.02f;

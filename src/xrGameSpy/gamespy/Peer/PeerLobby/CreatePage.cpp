@@ -1,7 +1,7 @@
 // CreatePage.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "PeerLobby.h"
 #include "CreatePage.h"
 #include "LobbyWizard.h"

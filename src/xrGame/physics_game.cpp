@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "../xrEngine/GameMtlLib.h"
 #include "Level.h"
 #include "GamePersistent.h"
@@ -11,14 +11,14 @@
 #include "PHCommander.h"
 #include "../xrPhysics/MathUtils.h"
 #include "../xrPhysics/IPHWorld.h"
-//#include "../xrPhysics/physicsshell.h"
+//#include "../xrPhysics/PhysicsShell.h"
 
 #include "PHReqComparer.h"
 
 #include "../Include/xrRender/FactoryPtr.h"
 #include "../Include/xrRender/WallMarkArray.h"
 //#ifdef	DEBUG
-//#include "phdebug.h"
+//#include "PHDebug.h"
 //#endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////

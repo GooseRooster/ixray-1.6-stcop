@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "compiler.h"
 
 xr_vector<NodeCompressed> compressed_nodes;

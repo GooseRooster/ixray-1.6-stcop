@@ -6,7 +6,7 @@
 //	Description : Script Engine help
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 
 void print_help(lua_State* L)

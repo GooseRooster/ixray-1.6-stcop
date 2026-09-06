@@ -6,11 +6,11 @@
 //	Description : Level spawn constructor
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "level_spawn_constructor.h"
 #include "level_graph.h"
 #include "graph_engine.h"
-#include "xrmessages.h"
+#include "xrMessages.h"
 #include "xrServer_Objects_ALife_All.h"
 #include "factory_api.h"
 #include "clsid_game.h"

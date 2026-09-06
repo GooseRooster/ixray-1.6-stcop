@@ -2,10 +2,10 @@
 #ifndef PH_CAPTURE_H
 #define PH_CAPTURE_H
 
-//#include "phobject.h"
+//#include "PHObject.h"
 #include "PHUpdateObject.h"
-//#include "gameobject.h"
-//#include "physicsshellholder.h"
+//#include "GameObject.h"
+//#include "PhysicsShellHolder.h"
 #include "PHIsland.h"
 #include "../3rd-party/ode/include/ode/common.h"
 #include "IPHCapture.h"

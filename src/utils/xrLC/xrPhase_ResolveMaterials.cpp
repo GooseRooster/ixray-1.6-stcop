@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Build.h"
 #include "../xrLC_Light/xrLC_GlobalData.h"
 #include "../xrLC_Light/xrFace.h"
@@ -50,7 +50,7 @@ void	CBuild::xrPhase_ResolveMaterials()
 	t.Start();
 	u32 msCalc = 0;
 	{		
-		//x6 Áûסענוו םא Ryzen 7 3700x קול SC
+		//x6   Ryzen 7 3700x  SC
 		xr_vector<_counter> count(counts_mt_safe.begin(), counts_mt_safe.end());
 
 		concurrency::concurrent_vector<concurrency::concurrent_vector<Face*>> g_Xsplits_def;

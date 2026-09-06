@@ -1,9 +1,9 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "NoGravityZone.h"
 #include "../xrPhysics/PhysicsShell.h"
 #include "entity_alive.h"
 #include "PHMovementControl.h"
-//#include "PhWorld.h"
+//#include "PHWorld.h"
 #include "CharacterPhysicsSupport.h"
 //extern CPHWorld	*ph_world;
 #include "../xrPhysics/IPHWorld.h"

@@ -6,7 +6,7 @@
 //	Description : Stalker animation manager debug functions
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #ifdef DEBUG
 #	include "stalker_animation_manager.h"

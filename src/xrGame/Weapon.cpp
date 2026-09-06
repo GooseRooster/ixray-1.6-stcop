@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Weapon.h"
 #include "entity_alive.h"
 #include "inventory_item_impl.h"

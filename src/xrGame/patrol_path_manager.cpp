@@ -6,7 +6,7 @@
 //	Description : Patrol path manager
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "GameObject.h"
 #include "patrol_path_manager.h"

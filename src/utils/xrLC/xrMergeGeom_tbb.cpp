@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "../xrLC_Light/Lightmap.h"
 #include "Build.h"
 #include "../xrLC_Light/xrDeflector.h"
@@ -149,7 +149,7 @@ struct SplitInfo
 #include <tbb/combinable.h>
 #include <tbb/parallel_for.h>
 
-// ForserX Не трогай то что и так работает :)
+// ForserX        :)
 void xrPhase_MergeGeometry_Tbb()
 {
 	xr_vector<SplitInfo> info(g_XSplit.size());

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #include "NVI_Convolution.h"
 #include "NVI_Image.h"

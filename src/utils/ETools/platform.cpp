@@ -10,7 +10,7 @@
  **/
 
 /* Platform support routines  - win32, OS/2, unix */
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #include "platform.h"
 //#include "i18n.h"

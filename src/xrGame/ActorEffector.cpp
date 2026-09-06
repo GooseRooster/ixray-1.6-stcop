@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #include "ActorEffector.h"
 #include "PostprocessAnimator.h"
@@ -209,7 +209,7 @@ BOOL CAnimatorCamEffector::ProcessCam(SCamEffectorInfo& info)
 
 BOOL CAnimatorCamLerpEffector::ProcessCam(SCamEffectorInfo& info)
 {
-	if(!inherited::inherited::ProcessCam(info))	return FALSE;
+	if(!CAnimatorCamEffector::ProcessCam(info))	return FALSE;
 
 	const Fmatrix& m			= m_objectAnimator->XFORM();
 	m_objectAnimator->Update	(Device.fTimeDelta);

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "compiler.h"
 
 #include "cl_intersect.h"

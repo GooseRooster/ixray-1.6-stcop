@@ -154,7 +154,7 @@ IC	void CGameLocationSelector::select_random_location(const _vertex_id_type star
 }
 
 TEMPLATE_SPECIALIZATION
-IC	void CGameLocationSelector::selection_type		() const
+IC	ESelectionType CGameLocationSelector::selection_type		() const
 {
 	return				(m_selection_type);
 }

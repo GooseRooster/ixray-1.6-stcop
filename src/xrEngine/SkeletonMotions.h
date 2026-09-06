@@ -2,7 +2,7 @@
 #ifndef SkeletonMotionsH
 #define SkeletonMotionsH
 
-//#include		"skeletoncustom.h"
+//#include		"SkeletonCustom.h"
 #include "bone.h"
 #include "SkeletonMotionDefs.h"
 #include "../xrCore/_stl_extensions.h"

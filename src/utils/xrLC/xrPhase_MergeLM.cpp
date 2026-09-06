@@ -1,5 +1,5 @@
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Build.h"
 
 #include "xrPhase_MergeLM_Surface.h"

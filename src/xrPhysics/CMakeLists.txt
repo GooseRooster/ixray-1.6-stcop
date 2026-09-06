@@ -53,6 +53,11 @@ target_include_directories(xrPhysics PUBLIC "${IXRAY_SDK_INC}")
 target_compile_definitions(xrPhysics PRIVATE XRPHYSICS_EXPORTS)
 target_compile_definitions(xrPhysics PRIVATE dSINGLE)
 target_compile_definitions(xrPhysics PRIVATE _USRDLL)
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # clang-cl: vendored ODE tri-collider sources use MSVC-style token
+    # pasting that forms 'pos[' etc.; MSVC accepts it silently.
+    target_compile_options(xrPhysics PRIVATE "-Wno-invalid-token-paste")
+endif()
 
 # Linker list
 target_link_libraries(xrPhysics PUBLIC xrCore)

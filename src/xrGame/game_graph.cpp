@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "game_graph.h"
 CGameGraph::CGameGraph(const IReader& _stream)
 {

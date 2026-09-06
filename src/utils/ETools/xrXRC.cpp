@@ -1,7 +1,7 @@
 // xrXRC.cpp: implementation of the xrXRC class.
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 
 
 #include "xrXRC.h"

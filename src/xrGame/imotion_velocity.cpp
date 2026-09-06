@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "imotion_velocity.h"
 
 #include "../xrPhysics/PhysicsShell.h"

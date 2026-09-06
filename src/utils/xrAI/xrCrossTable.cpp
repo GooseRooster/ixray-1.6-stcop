@@ -6,7 +6,7 @@
 //	Description : Building cross table for AI nodes
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "xrCrossTable.h"
 
 LPCSTR GAME_LEVEL_GRAPH = "level.graph";

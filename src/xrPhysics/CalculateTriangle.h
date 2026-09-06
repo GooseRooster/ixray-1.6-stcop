@@ -6,7 +6,7 @@
 //#include "../xrengine/IGame_Level.h"
 #include "ode_redefine.h"
 #include "../xrCore/Collision/xr_area.h"
-//#include "phworld.h"
+//#include "PHWorld.h"
 #pragma warning(disable:4995)
 #pragma warning(disable:4267)
 ICF void GetNormal(CDB::TRI*XTri,Fvector &n, const Fvector* V_array )

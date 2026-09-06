@@ -1,7 +1,7 @@
 // ScRaceSample.cpp : Defines the class behaviors for the application.
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ScRaceSample.h"
 #include "ScRaceSampleDlg.h"
 

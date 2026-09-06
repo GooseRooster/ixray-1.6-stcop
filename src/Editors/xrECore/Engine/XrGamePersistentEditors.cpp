@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include "../xrEngine/IGame_Persistent.h"
-//#include "..\XrAPI\xrGameManager.h"
+//#include "..\XrAPI\XrGameManager.h"
 #include "XrGamePersistentEditors.h"
 
 XrGamePersistentEditors::XrGamePersistentEditors():IGame_Persistent ()

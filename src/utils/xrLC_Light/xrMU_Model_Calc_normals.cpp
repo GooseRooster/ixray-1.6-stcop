@@ -1,5 +1,5 @@
 #include "stdafx.h"
-//#include "build.h"
+//#include "Build.h"
 #include "mu_model_face.h"
 #include "calculate_normals.h"
 #include "xrMU_Model.h"

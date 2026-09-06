@@ -197,7 +197,7 @@ struct OMFEditorState
 
 OMFEditorState* pEditor = &g_omf_editor;
 
-template<std::size_t Size>
+template<unsigned int Size>
 void OMFEditor_ReadString(xr_stack_string<Size>& str, std::ifstream& file)
 {
 	char symbol = -1;
@@ -212,7 +212,7 @@ void OMFEditor_ReadString(xr_stack_string<Size>& str, std::ifstream& file)
 	} while (symbol != '\0');
 }
 
-template<std::size_t Size>
+template<unsigned int Size>
 void OMFEditor_ReadStringMotionMark(xr_stack_string<Size>& str, std::ifstream& file)
 {
 	char symbol = -1;

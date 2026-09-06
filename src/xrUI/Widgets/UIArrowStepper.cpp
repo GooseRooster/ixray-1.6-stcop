@@ -7,7 +7,7 @@
 //	Description : Element for step-by-step value adjustment using arrows or direct clicks
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #include "UIArrowStepper.h"
 #include "UI3tButton.h"

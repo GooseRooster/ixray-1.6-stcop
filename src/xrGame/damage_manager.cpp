@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "damage_manager.h"
 #include "../xrEngine/xr_object.h"
 #include "../Include/xrRender/Kinematics.h"

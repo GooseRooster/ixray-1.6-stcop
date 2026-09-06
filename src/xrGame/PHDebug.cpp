@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #ifdef DEBUG_DRAW
 #include "PHDebug.h"
@@ -135,11 +135,11 @@ void _cdecl DBG_OutText(LPCSTR s, ...)
 
 #endif
 #ifdef DEBUG
-//#include "physics.h"
+//#include "Physics.h"
 //#include "MathUtils.h"
 #include "../xrEngine/StatGraph.h"
 #include "PHDebug.h"
-//#include "physics.h"
+//#include "Physics.h"
 #include "../xrPhysics/MathUtils.h"
 //#include "PHObject.h"
 #include "../xrPhysics/ExtendedGeom.h"
@@ -156,7 +156,7 @@ void _cdecl DBG_OutText(LPCSTR s, ...)
 #include "../Include/xrRender/KinematicsAnimated.h"
 #include "../xrEngine/bone.h"
 #include "../xrEngine/IPHdebug.h"
-//#include "phelement.h"
+//#include "PHElement.h"
 
 Flags32		ph_dbg_draw_mask						;
 Flags32		ph_dbg_draw_mask1						;

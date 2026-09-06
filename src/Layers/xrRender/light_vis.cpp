@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "light.h"
 
 const	u32	delay_small_min			= 1;

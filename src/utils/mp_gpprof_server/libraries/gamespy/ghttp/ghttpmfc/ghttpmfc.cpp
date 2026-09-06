@@ -1,7 +1,7 @@
 // ghttpmfc.cpp : Defines the class behaviors for the application.
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ghttpmfc.h"
 #include "ghttpmfcDlg.h"
 

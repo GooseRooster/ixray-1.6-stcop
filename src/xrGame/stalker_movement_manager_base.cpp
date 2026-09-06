@@ -6,7 +6,7 @@
 //	Description : stalker movement manager base class
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "stalker_movement_manager_base.h"
 #include "stalker_movement_manager_space.h"
 #include "script_entity_action.h"

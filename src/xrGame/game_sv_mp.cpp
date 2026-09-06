@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "game_sv_mp.h"
 #include "xrServer.h"
 #include "xrMessages.h"

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "../xrEngine/FDemoRecord.h"
 #include "../xrEngine/FDemoPlay.h"
@@ -14,7 +14,7 @@
 #include "entity_alive.h"
 #include "ai_space.h"
 #include "ai_debug.h"
-//#include "PHdynamicdata.h"
+//#include "PHDynamicData.h"
 //#include "Physics.h"
 #include "ShootingObject.h"
 #include "GametaskManager.h"
@@ -57,8 +57,8 @@
 #	include "level_debug.h"
 #	include "ai/stalker/ai_stalker.h"
 #	include "debug_renderer.h"
-#	include "physicobject.h"
-#	include "phdebug.h"
+#	include "PhysicObject.h"
+#	include "PHDebug.h"
 
 // Lain:added
 #	include "debug_text_tree.h"

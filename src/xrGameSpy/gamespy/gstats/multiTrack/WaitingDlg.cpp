@@ -1,7 +1,7 @@
 // WaitingDlg.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "multiTrack.h"
 #include "WaitingDlg.h"
 

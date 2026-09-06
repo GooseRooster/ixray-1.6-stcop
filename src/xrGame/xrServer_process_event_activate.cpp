@@ -1,6 +1,6 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "xrServer.h"
-#include "xrserver_objects.h"
+#include "xrServer_Objects.h"
 
 ENGINE_API bool g_dedicated_server;
 

@@ -6,7 +6,7 @@
 //	Description : Script zone object
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "script_zone.h"
 #include "script_game_object.h"
@@ -16,7 +16,7 @@
 #include "game_object_space.h"
 
 #ifdef DEBUG
-#	include "level.h"
+#	include "Level.h"
 #	include "debug_renderer.h"
 #endif
 

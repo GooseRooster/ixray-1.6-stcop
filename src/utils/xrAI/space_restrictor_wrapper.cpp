@@ -6,7 +6,7 @@
 //	Description : space restrictor wrapper
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "space_restrictor_wrapper.h"
 #include "xrServer_Objects_ALife.h"
 #include "level_graph.h"

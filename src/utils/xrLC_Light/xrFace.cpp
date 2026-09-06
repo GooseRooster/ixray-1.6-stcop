@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include "xrFace.h"
-//#include "build.h"
+//#include "Build.h"
 #include "xrDeflector.h"
 #include "xrLC_GlobalData.h"
 #include "Lightmap.h"

@@ -6,7 +6,7 @@
 //	Description : XRay base client classes script export
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "base_client_classes.h"
 #include "base_client_classes_wrappers.h"
@@ -19,7 +19,7 @@
 using namespace luabind;
 
 #pragma optimize("s",on)
-void DLL_PureScript::script_register	(lua_State *L)
+template<> void class_exporter<DLL_Pure>::script_register	(lua_State *L)
 {
 	module(L)
 	[
@@ -29,7 +29,7 @@ void DLL_PureScript::script_register	(lua_State *L)
 	];
 }
 
-void ISheduledScript::script_register	(lua_State *L)
+template<> void class_exporter<ISheduled>::script_register	(lua_State *L)
 {
 	module(L)
 	[
@@ -37,7 +37,7 @@ void ISheduledScript::script_register	(lua_State *L)
 	];
 }
 
-void IRenderableScript::script_register	(lua_State *L)
+template<> void class_exporter<IRenderable>::script_register	(lua_State *L)
 {
 	module(L)
 	[
@@ -45,7 +45,7 @@ void IRenderableScript::script_register	(lua_State *L)
 	];
 }
 
-void ICollidableScript::script_register	(lua_State *L)
+template<> void class_exporter<ICollidable>::script_register	(lua_State *L)
 {
 	module(L)
 	[
@@ -54,7 +54,7 @@ void ICollidableScript::script_register	(lua_State *L)
 	];
 }
 
-void CObjectScript::script_register		(lua_State *L)
+template<> void class_exporter<CObject>::script_register		(lua_State *L)
 {
 	module(L)
 	[
@@ -74,7 +74,7 @@ void CObjectScript::script_register		(lua_State *L)
 	];
 }
 
-void IRender_VisualScript::script_register		(lua_State *L)
+template<> void class_exporter<IRender_Visual>::script_register		(lua_State *L)
 {
 	module(L)
 	[
@@ -88,7 +88,7 @@ void IKinematicsAnimated_PlayCycle(IKinematicsAnimated* sa, LPCSTR anim)
 	sa->PlayCycle(anim);
 }
 
-void IKinematicsAnimatedScript::script_register		(lua_State *L)
+template<> void class_exporter<IKinematicsAnimated>::script_register		(lua_State *L)
 {
 	module(L)
 	[
@@ -97,7 +97,7 @@ void IKinematicsAnimatedScript::script_register		(lua_State *L)
 	];
 }
 
-void CBlendScript::script_register		(lua_State *L)
+template<> void class_exporter<CBlend>::script_register		(lua_State *L)
 {
 	module(L)
 		[

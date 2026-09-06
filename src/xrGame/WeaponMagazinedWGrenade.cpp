@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "WeaponMagazinedWGrenade.h"
 #include "Entity.h"
 #include "GrenadeLauncher.h"
@@ -16,7 +16,7 @@
 #include "InventoryOwner.h"
 
 #ifdef DEBUG
-#	include "phdebug.h"
+#	include "PHDebug.h"
 #endif
 
 CWeaponMagazinedWGrenade::CWeaponMagazinedWGrenade(ESoundTypes eSoundType) : CWeaponMagazined(eSoundType)

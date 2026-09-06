@@ -5,7 +5,7 @@
 #include "../xrCore/Collision/xr_area.h"
 #include "Render.h"
 #include "xrLevel.h"
-//#include "fbasicvisual.h"
+//#include "FBasicVisual.h"
 #include "../Include/xrRender/RenderVisual.h"
 #include "../Include/xrRender/Kinematics.h"
 

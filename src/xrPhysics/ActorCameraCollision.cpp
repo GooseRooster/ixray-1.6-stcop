@@ -14,7 +14,7 @@
 
 //#include "ai/stalker/ai_stalker.h"
 #include "GeometryBits.h"
-//#include "characterphysicssupport.h"
+//#include "CharacterPhysicsSupport.h"
 #ifdef DEBUG
 #	include	"debug_output.h"
 #endif

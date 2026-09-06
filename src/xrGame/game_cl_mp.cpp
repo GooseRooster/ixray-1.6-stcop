@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "game_cl_mp.h"
 #include "../xrEngine/xr_level_controller.h"
 #include "xrMessages.h"

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 
-//#include "build.h"
+//#include "Build.h"
 #include "xrMU_Model.h"
 //#include "xrLC_GlobalData.h"
 #include "light_point.h"

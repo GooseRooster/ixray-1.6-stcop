@@ -6,7 +6,7 @@
 //	Description : Eatable item
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "eatable_item.h"
 #include "xrMessages.h"
 #include "physic_item.h"

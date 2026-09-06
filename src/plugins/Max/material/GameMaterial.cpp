@@ -1,4 +1,4 @@
-#include "../kernel/Stdafx.h"
+#include "../kernel/stdafx.h"
 #pragma hdrstop
 
 #include "GameMaterial.h"

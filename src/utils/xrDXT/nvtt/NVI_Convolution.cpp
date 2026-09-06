@@ -11,7 +11,7 @@ from the use or inability to use this file or items derived from it.
 Comments:
 
 ******************************************************************************/
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #include "NVI_Convolution.h"
 

@@ -1,7 +1,7 @@
 // DXT.cpp : Defines the entry point for the DLL application.
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #pragma warning(push)
 #pragma warning(disable:4244)
 #pragma warning(disable:4018)

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "xrDXT.h"
 #include <magic_enum/magic_enum.hpp>
 

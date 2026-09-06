@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "xrServer.h"
 #include "game_sv_single.h"
 #include "game_sv_deathmatch.h"

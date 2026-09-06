@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "HolderEntityObject.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "../xrPhysics/PhysicsShell.h"

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Level.h"
 #include "xrServerMapSync.h"
 #include "../xrCore/stream_reader.h"

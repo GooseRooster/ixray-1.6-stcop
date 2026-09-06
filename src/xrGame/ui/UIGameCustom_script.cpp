@@ -1,8 +1,8 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "UIGameCustom.h"
 #include "Level.h"
-#include "../../xrUI/Widgets/uistatic.h"
+#include "../../xrUI/Widgets/UIStatic.h"
 #include "../../xrUI/Widgets/UIDialogHolder.h"
 #include "../../xrUI/Widgets/UIDialogWnd.h"
 

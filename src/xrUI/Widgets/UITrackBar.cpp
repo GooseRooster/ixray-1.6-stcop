@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #include "UITrackBar.h"
 #include "UI3tButton.h"

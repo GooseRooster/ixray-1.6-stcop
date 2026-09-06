@@ -308,17 +308,17 @@ ICF const ILevelGraph::CPosition &ILevelGraph::CVertex::position() const
 	return (UncompressedNode.p);
 }
 
-ICF bool ILevelGraph::CVertex::operator<	(const ILevelGraph::CVertex &vertex) const
+ICF bool LevelGraph::CVertex::operator<	(const LevelGraph::CVertex &vertex) const
 {
 	return				(position().xz() < vertex.position().xz());
 }
 
-ICF bool ILevelGraph::CVertex::operator>	(const ILevelGraph::CVertex &vertex) const
+ICF bool LevelGraph::CVertex::operator>	(const LevelGraph::CVertex &vertex) const
 {
 	return				(position().xz() > vertex.position().xz());
 }
 
-ICF bool ILevelGraph::CVertex::operator==	(const ILevelGraph::CVertex &vertex) const
+ICF bool LevelGraph::CVertex::operator==	(const LevelGraph::CVertex &vertex) const
 {
 	return				(position().xz() == vertex.position().xz());
 }

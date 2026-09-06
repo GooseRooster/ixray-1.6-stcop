@@ -6,7 +6,7 @@
 //	Description : Script render device script export
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "script_render_device.h"
 
@@ -35,7 +35,7 @@ u32 time_global(const CRenderDevice *self_)
 }
 
 #pragma optimize("s",on)
-void CScriptRenderDevice::script_register(lua_State *L)
+template<> void class_exporter<CRenderDevice>::script_register(lua_State *L)
 {
 	module(L)
 	[

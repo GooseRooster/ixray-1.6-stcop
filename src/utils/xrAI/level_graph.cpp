@@ -6,7 +6,7 @@
 //	Description : Level graph
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "level_graph.h"
 
 LPCSTR LEVEL_GRAPH_NAME = "level.ai";
@@ -37,7 +37,7 @@ CLevelGraph::CLevelGraph(LPCSTR filename)
 					m_nodes[i].UncompressedNode.link(j, link_value);
 				}
 
-				// Остальные поля
+				//  
 				m_nodes[i].UncompressedNode.high = Src[i].high;
 				m_nodes[i].UncompressedNode.low = Src[i].low;
 				m_nodes[i].UncompressedNode.plane = Src[i].plane;

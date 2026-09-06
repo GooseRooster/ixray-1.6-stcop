@@ -1,3 +1,3 @@
-#include "Stdafx.h"
+#include "stdafx.h"
 #pragma hdrstop
 

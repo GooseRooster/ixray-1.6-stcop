@@ -3,7 +3,7 @@
 //						(умеет лететь, светиться и отыгрывать партиклы)
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "CustomRocket.h"
 #include "../xrParticles/stdafx.h"
 #include "../xrParticles/ParticlesObject.h"

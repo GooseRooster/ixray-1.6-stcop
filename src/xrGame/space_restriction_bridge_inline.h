@@ -9,6 +9,7 @@
 #pragma once
 
 #include "level_graph.h"
+#include "space_restriction_base.h"
 #include "ai_space.h"
 
 IC	CSpaceRestrictionBridge::CSpaceRestrictionBridge		(CSpaceRestrictionBase *object)

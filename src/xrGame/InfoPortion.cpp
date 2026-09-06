@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "xml_str_id_loader.h"
 #include "object_broker.h"
@@ -12,7 +12,7 @@
 #include "alife_story_registry.h"
 #include "xrServer_Objects_ALife.h"
 #include "script_engine.h"
-#include "ui\uixmlinit.h"
+#include "ui\UIXmlInit.h"
 
 void INFO_DATA::load (IReader& stream) 
 {

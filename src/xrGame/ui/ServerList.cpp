@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ServerList.h"
 #include "../../xrUI/UIXmlInit.h"
 #include "../../xrEngine/string_table.h"

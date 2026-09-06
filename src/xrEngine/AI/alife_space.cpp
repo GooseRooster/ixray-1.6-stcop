@@ -3,7 +3,7 @@
 
 namespace ALife 
 {
-ENGINE_API xr_token hit_types_token []=
+extern ENGINE_API xr_token hit_types_token []=
 {
 	{ "burn",						eHitTypeBurn								},
 	{ "shock",						eHitTypeShock								},

@@ -14,7 +14,7 @@
 #include "../xrServerEntities/object_broker.h"
 
 #ifdef _EDITOR
-	#include "ui_toolscustom.h"
+	#include "UI_ToolsCustom.h"
 	#include "ui_main.h"
 #else
 	#include "xr_object.h"

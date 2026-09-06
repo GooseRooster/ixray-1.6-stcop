@@ -78,7 +78,7 @@ target_link_libraries(xrRender_R1 PRIVATE "d3d9.lib")
 
 ## DirectX SDK
 target_include_directories(xrRender_R1 PUBLIC "${CMAKE_BINARY_DIR}/packages/directxtex_desktop_2019.2024.6.5.1/include/")
-target_link_libraries(xrRender_R1 PUBLIC ${CMAKE_BINARY_DIR}/packages/directxtex_desktop_2019.2024.6.5.1/native/lib/${NUGET_PACKAGE_PLATFORM}/release/DirectXTex.lib)
+target_link_libraries(xrRender_R1 PUBLIC ${CMAKE_BINARY_DIR}/packages/directxtex_desktop_2019.2024.6.5.1/native/lib/${NUGET_PACKAGE_PLATFORM}/Release/DirectXTex.lib)
 
 target_include_directories(xrRender_R1 PUBLIC "${CMAKE_BINARY_DIR}/packages/directxmesh_desktop_2019.2024.6.5.1/include/")
 

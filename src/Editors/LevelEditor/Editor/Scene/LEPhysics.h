@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../xrphysics/xrphysics.h"
+#include "../../xrphysics/xrPhysics.h"
 
 class CObjectSpace;
 class CScenePhysics

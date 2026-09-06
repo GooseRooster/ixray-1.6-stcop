@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "ai_space.h"
 #include "object_factory.h"
@@ -8,7 +8,7 @@
 #include "entity_alive.h"
 #include "ui/UIInventoryUtilities.h"
 #include "../../xrUI/UIXmlInit.h"
-#include "../../xrUI/UItextureMaster.h"
+#include "../../xrUI/UITextureMaster.h"
 
 #include "InfoPortion.h"
 #include "PhraseDialog.h"

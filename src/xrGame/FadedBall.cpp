@@ -3,7 +3,7 @@
 // FadedBall - артефакт блеклый шар
 ///////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "FadedBall.h"
 #include "../xrPhysics/PhysicsShell.h"
 

@@ -1,7 +1,7 @@
 // ScRaceSampleDlg.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ScRaceSample.h"
 #include "ScRaceSampleDlg.h"
 #include "WaitingDlg.h"

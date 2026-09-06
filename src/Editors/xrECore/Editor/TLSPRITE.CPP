@@ -1,9 +1,9 @@
 #include "stdafx.h"
 
 
-#include "tlsprite.h"
+#include "TLSPRITE.h"
 #include "ui_main.h"
-#include "d3dutils.h"
+#include "D3DUtils.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

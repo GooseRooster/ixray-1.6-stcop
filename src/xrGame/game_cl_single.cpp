@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "game_cl_single.h"
 #include "UIGameSP.h"
@@ -101,7 +101,7 @@ void game_cl_Single::SetEnvironmentGameTimeFactor		(const float fTimeFactor)
 }
 
 #pragma optimize("s",on)
-void CScriptGameDifficulty::script_register(lua_State *L)
+template<> void enum_exporter<ESingleGameDifficulty>::script_register(lua_State *L)
 {
 	module(L)
 		[

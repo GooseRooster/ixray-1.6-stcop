@@ -2,7 +2,7 @@
 
 #include "ui_main.h"
 #include "UIWeatherPropForm.h"
-#include "engine/xrGamePersistentEditors.h"
+#include "engine/XrGamePersistentEditors.h"
 #include "../xrEngine/IGame_Level.h"
 #include "../xrEngine/IGame_Persistent.h"
 #include "../xrEngine/Environment.h"

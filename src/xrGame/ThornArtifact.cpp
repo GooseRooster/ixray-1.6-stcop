@@ -3,7 +3,7 @@
 // ThornArtefact - артефакт колючка
 ///////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ThornArtifact.h"
 #include "../xrPhysics/PhysicsShell.h"
 

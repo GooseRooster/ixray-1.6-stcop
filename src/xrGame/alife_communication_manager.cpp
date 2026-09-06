@@ -6,12 +6,12 @@
 //	Description : ALife communication manager
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "alife_communication_manager.h"
 
 /**
 #include "alife_communication_space.h"
-#include "xrServer_objects_ALife_All.h"
+#include "xrServer_Objects_ALife_All.h"
 #include "alife_object_registry.h"
 #include "alife_graph_registry.h"
 #include "ai_debug.h"

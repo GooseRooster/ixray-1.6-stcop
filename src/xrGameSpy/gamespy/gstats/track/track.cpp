@@ -1,7 +1,7 @@
 // track.cpp : Defines the class behaviors for the application.
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "track.h"
 #include "trackDlg.h"
 

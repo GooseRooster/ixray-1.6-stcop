@@ -1,7 +1,7 @@
 // LoginDlg.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "multiTrack.h"
 #include "LoginDlg.h"
 #include "../../common/gsAvailable.h"

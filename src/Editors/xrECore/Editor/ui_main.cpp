@@ -16,7 +16,7 @@
 #include "UIWeatherPropForm.h"
 #include "../utils/ETools/ETools.h"
 #include "UILogForm.h"
-#include "../xrEngine/gamefont.h"
+#include "../xrEngine/GameFont.h"
 #include "../XrEngine/XR_IOConsole.h"
 
 #define TRelease(x) if (x) x->pSurface->Release()

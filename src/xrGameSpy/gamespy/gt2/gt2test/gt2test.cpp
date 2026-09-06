@@ -1,7 +1,7 @@
 // gt2test.cpp : Defines the class behaviors for the application.
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "gt2test.h"
 #include "gt2testDlg.h"
 

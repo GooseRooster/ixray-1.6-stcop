@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "WeaponBinocularsVision.h"
 #include "WeaponBinoculars.h"
 #include "entity_alive.h"

@@ -6,7 +6,7 @@
 //	Description : AI space class
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "game_graph.h"
 #include "level_graph.h"
 #include "graph_engine.h"

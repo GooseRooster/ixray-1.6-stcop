@@ -1,7 +1,7 @@
 // HostOrJoinDlg.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ladderTrack.h"
 #include "HostOrJoinDlg.h"
 

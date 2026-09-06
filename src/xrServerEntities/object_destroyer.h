@@ -87,14 +87,10 @@ struct CDestroyer {
 	template <typename T>
 	struct CHelper1 {
 		template <bool a>
-		IC	static void delete_data(T &)
+		IC	static void delete_data(T &data)
 		{
-		}
-
-		template <>
-		IC	static void delete_data<true>(T &data)
-		{
-			data.destroy();
+			if constexpr (std::is_base_of<IPureDestroyableObject, T>::value)
+				data.destroy();
 		}
 	};
 
@@ -103,15 +99,16 @@ struct CDestroyer {
 		template <bool a>
 		IC	static void delete_data(T &data)
 		{
-			CHelper1<T>::delete_data<std::is_base_of<IPureDestroyableObject,T>::value>(data);
-		}
-
-		template <>
-		IC	static void delete_data<true>(T &data)
-		{
-			if (data)
-				CDestroyer::delete_data	(*data);
-			xr_delete					(data);
+			if constexpr (std::is_pointer<T>::value)
+			{
+				if (data)
+					CDestroyer::delete_data	(*data);
+				xr_delete					(data);
+			}
+			else
+			{
+				CHelper1<T>::template delete_data<std::is_base_of<IPureDestroyableObject,T>::value>(data);
+			}
 		}
 	};
 
@@ -133,20 +130,21 @@ struct CDestroyer {
 		template <bool a>
 		IC	static void delete_data(T &data)
 		{
-			CHelper2<T>::delete_data<std::is_pointer<T>::value>	(data);
-		}
-
-		template <>
-		IC	static void delete_data<true>(T &data)
-		{
-			CHelper3::delete_data	(data);
+			if constexpr (object_type_traits::is_stl_container<T>::value)
+			{
+				CHelper3::delete_data	(data);
+			}
+			else
+			{
+				CHelper2<T>::template delete_data<std::is_pointer<T>::value>	(data);
+			}
 		}
 	};
 
 	template <typename T>
 	IC	static void delete_data(T &data)
 	{
-		CHelper4<T>::delete_data<object_type_traits::is_stl_container<T>::value>(data);
+		CHelper4<T>::template delete_data<object_type_traits::is_stl_container<T>::value>(data);
 	}
 };
 

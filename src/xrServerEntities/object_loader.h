@@ -34,7 +34,7 @@ struct CLoader {
 		template <bool pointer>
 		IC	static void load_data(T &data, M &stream, const P &p)
 		{
-			CHelper1<T>::load_data<
+			CHelper1<T>::template load_data<
 				object_type_traits::is_base_and_derived_or_same_from_template<
 					IPureLoadableObject,
 					T
@@ -87,7 +87,7 @@ struct CLoader {
 		template <typename T1, typename T2>
 		IC	static void add(T1 &data, T2 &value)
 		{
-			add_helper<T1,T2>::add<is_tree_structure<T1>::value>(data,value);
+			add_helper<T1,T2>::template add<is_tree_structure<T1>::value>(data,value);
 		}
 
 		template <typename T>
@@ -110,7 +110,7 @@ struct CLoader {
 		template <bool a>
 		IC	static void load_data(T &data, M &stream, const P &p)
 		{
-			CHelper<T>::load_data<std::is_pointer<T>::value>	(data,stream,p);
+			CHelper<T>::template load_data<std::is_pointer<T>::value>	(data,stream,p);
 		}
 
 		template <>
@@ -261,7 +261,7 @@ struct CLoader {
 	template <typename T>
 	IC	static void load_data(T &data, M &stream, const P &p)
 	{
-		CHelper4<T>::load_data<object_type_traits::is_stl_container<T>::value>	(data,stream,p);
+		CHelper4<T>::template load_data<object_type_traits::is_stl_container<T>::value>	(data,stream,p);
 	}
 };
 

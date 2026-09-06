@@ -3,7 +3,7 @@
 // GalantineArtefact - артефакт ведбмин студень
 ///////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "GalantineArtifact.h"
 
 

@@ -1,5 +1,5 @@
 // file: targasaver.cpp
-#include "StdAfx.h"
+#include "stdafx.h"
 
 
 #include "tga.h"

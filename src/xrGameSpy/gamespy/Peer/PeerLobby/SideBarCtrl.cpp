@@ -1,7 +1,7 @@
 // SideBarCtrl.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "PeerLobby.h"
 #include "SideBarCtrl.h"
 

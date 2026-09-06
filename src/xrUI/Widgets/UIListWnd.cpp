@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "UIListWnd.h"
-//.#include "uiscrollbar.h"
+//.#include "UIScrollBar.h"
 #include "UIFrameLineWnd.h"
 
 //#define ACTIVE_BACKGROUND			"ui\\ui_pop_up_active_back"

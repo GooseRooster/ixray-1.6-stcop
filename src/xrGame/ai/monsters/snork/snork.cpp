@@ -11,7 +11,7 @@
 #include "../../../PHMovementControl.h"
 
 #ifdef _DEBUG
-#	include "../../../actor.h"
+#	include "../../../Actor.h"
 #	include "../../../ai_object_location.h"
 #	include "../../../level_debug.h"
 #	include "../../../cover_point.h"

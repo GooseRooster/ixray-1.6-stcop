@@ -1,7 +1,7 @@
 // GroupPage.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "PeerLobby.h"
 #include "GroupPage.h"
 #include "LobbyWizard.h"

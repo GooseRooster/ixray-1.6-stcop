@@ -25,7 +25,7 @@
 #elif defined(_PS2)
 	#include "ps2/gsUtilPs2.c"
 #elif defined(_PS3)
-	#include "ps3/gsUtilPs3.c"
+	#include "ps3/gsUtilPS3.c"
 #elif defined(_PSP)
 	#include "psp/gsUtilPSP.c"
 #elif defined(_REVOLUTION)

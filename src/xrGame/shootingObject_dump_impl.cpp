@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ShootingObject.h"
 #include "GameObject.h"
 

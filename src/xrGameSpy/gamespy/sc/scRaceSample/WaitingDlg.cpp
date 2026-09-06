@@ -1,7 +1,7 @@
 // WaitingDlg.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ScRaceSample.h"
 #include "WaitingDlg.h"
 

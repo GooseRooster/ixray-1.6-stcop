@@ -6,7 +6,7 @@
 //	Description : Merging level graphs for off-line AI NPC computations
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "../../xrCore/xr_ini.h"
 #include "../../xrEngine/xrLevel.h"
 #include "xrAI.h"

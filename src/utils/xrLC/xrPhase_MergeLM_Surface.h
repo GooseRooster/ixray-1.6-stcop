@@ -2,7 +2,7 @@
 
 #include <atomic>
 #include "xrPhase_MergeLM_Rect.h"
-#include "../xrLC_Light/xrdeflector.h" 
+#include "../xrLC_Light/xrDeflector.h" 
 #include "../../XrCore/xrCore.h"
 
 class lm_layer;

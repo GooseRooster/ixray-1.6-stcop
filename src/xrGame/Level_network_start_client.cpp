@@ -1,5 +1,5 @@
-#include "StdAfx.h"
-//#include "PHdynamicdata.h"
+#include "stdafx.h"
+//#include "PHDynamicData.h"
 //#include "Physics.h"
 #include "Level.h"
 #include "../xrEngine/x_ray.h"

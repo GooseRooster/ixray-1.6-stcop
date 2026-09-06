@@ -6,7 +6,7 @@
 //	Description : Stalker movement manager: dynamic obstacles avoidance
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "stalker_movement_manager_obstacles.h"
 #include "stalker_movement_manager_space.h"
 #include "ai_space.h"

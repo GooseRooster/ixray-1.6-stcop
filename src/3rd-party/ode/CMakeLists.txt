@@ -28,6 +28,11 @@ target_include_directories(ODE PUBLIC "${IXRAY_SDK_INC}")
 # Project defines
 target_compile_definitions(ODE PRIVATE dSINGLE)
 target_compile_definitions(ODE PRIVATE _USRDLL)
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # clang-cl: the vendored ODE sources use MSVC-style token pasting that
+    # forms 'pos[' etc.; MSVC accepts it silently.
+    target_compile_options(ODE PRIVATE "-Wno-invalid-token-paste")
+endif()
 target_compile_definitions(ODE PRIVATE dNODEBUG)
 
 target_compile_definitions(ODE PRIVATE "$<$<CONFIG:Debug>:DEBUG>")

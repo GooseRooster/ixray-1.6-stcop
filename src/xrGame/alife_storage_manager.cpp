@@ -6,7 +6,7 @@
 //	Description : ALife Simulator storage manager
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "alife_storage_manager.h"
 #include "alife_simulator_header.h"
 #include "alife_time_manager.h"

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ClimableObject.h"
 #include "../xrPhysics/IPHStaticGeomShell.h"
 #include "xrServer_Objects_ALife.h"
@@ -9,7 +9,7 @@
 
 #ifdef DEBUG_DRAW
 #	include "debug_renderer.h"
-#	include "level.h"
+#	include "Level.h"
 #	include "PHDebug.h"
 #endif
 

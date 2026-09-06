@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #ifdef IXR_WINDOWS
 #include "../../Layers/xrRender/ETextureParams.h"

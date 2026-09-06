@@ -14,7 +14,7 @@
 using namespace luabind;
 
 #pragma optimize("s",on)
-void CScriptSoundType::script_register(lua_State *L)
+template<> void enum_exporter_lib<ESoundTypes>::script_register(lua_State *L)
 {
 	module(L)
 	[

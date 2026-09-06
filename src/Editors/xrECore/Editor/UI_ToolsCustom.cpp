@@ -9,7 +9,7 @@
 #include "ui_main.h"           
 #include "../xrEngine/motion.h"
 #include "../xrEngine/bone.h"
-#include "../xrEngine/fmesh.h"
+#include "../xrEngine/Fmesh.h"
 #include "Library.h"
 #include "D3DUtils.h"
 

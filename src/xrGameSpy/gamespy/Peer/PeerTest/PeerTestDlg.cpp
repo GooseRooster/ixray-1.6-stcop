@@ -1,7 +1,7 @@
 // PeerTestDlg.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "PeerTest.h"
 #include "PeerTestDlg.h"
 

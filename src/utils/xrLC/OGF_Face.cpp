@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Build.h"
 #include "OGF_Face.h"
 //#include "std_classes.h"
@@ -272,12 +272,12 @@ void OGF::MakeProgressive	(float metric_limit)
 	// there is no-sense to simplify small models
 	// for batch size 50,100,200 - we are CPU-limited anyway even on nv30
 	// for nv40 and up the better guess will probably be around 500
-	if (data.faces.size() < c_PM_FaceLimit * 4)		return;			// nv40 Теперь только
+	if (data.faces.size() < c_PM_FaceLimit * 4)		return;			// nv40  
 
  	if (g_params().m_quality==ebqDraft)			return;
 	if (g_build_options.b_noise)				return;
 
-	// Есть шанс словить вылет
+	//    
 	if (data.faces.size() > 32 * 1024)
 	{
 		clMsg("xmesh : Processing to big faces : %u", data.faces.size());

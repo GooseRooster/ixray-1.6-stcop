@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "CustomZone.h"
 //#include "../Include/xrRender/KinematicsAnimated.h"
 #include "../Include/xrRender/KinematicsAnimated.h"

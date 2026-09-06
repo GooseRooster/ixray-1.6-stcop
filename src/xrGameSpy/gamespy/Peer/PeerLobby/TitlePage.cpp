@@ -1,7 +1,7 @@
 // TitlePage.cpp : implementation file
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "PeerLobby.h"
 #include "TitlePage.h"
 #include "LobbyWizard.h"

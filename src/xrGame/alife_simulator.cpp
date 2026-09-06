@@ -6,7 +6,7 @@
 //	Description : ALife Simulator
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "alife_simulator.h"
 #include "xrServer_Objects_ALife.h"

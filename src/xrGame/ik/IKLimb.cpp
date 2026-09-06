@@ -3,7 +3,7 @@
 
 #include "../../Include/xrRender/Kinematics.h"
 
-#include "gameobject.h"
+#include "GameObject.h"
 
 #include "../game_object_space.h"
 #include "../ik_anim_state.h"

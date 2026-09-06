@@ -3,7 +3,7 @@
 // BlackDrops - черные капли
 ///////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "BlackDrops.h"
 #include "../xrPhysics/PhysicsShell.h"
 

@@ -6,14 +6,14 @@
 //	Description : Detail path manager
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "detail_path_manager.h"
 #include "ai_space.h"
 #include "ai_object_location.h"
 #include "level_graph.h"
 
 #ifdef DEBUG
-#	include "custommonster.h"
+#	include "CustomMonster.h"
 #endif
 
 CDetailPathManager::CDetailPathManager	(CRestrictedObject *object)

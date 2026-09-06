@@ -3,7 +3,7 @@
 
 #include "../../../xrCore/Collision/Frustum.h"
 #include "../../../xrEngine/vis_common.h"
-#include "../../../xrEngine/Render.h"
+#include "../../../xrEngine/render.h"
 
 #include "../../../Layers/xrRender/blenders/Blender.h"
 #include "../../../Layers/xrRender/blenders/Blender_CLSID.h"

@@ -1,5 +1,5 @@
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ddsw.hpp"
 
 const u32 fcc_DXT1 = MAKEFOURCC('D', 'X', 'T', '1');

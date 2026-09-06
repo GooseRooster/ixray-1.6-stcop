@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "xrServer_Objects_ALife_All.h"
 #include "Level.h"

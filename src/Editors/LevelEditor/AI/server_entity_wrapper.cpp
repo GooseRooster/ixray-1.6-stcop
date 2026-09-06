@@ -9,7 +9,7 @@
 #include "stdafx.h"
 #include "server_entity_wrapper.h"
 #include "..\xrServerEntities\xrServer_Objects.h"
-#include "..\xrServerEntities\xrmessages.h"
+#include "..\xrServerEntities\xrMessages.h"
 
 struct ISE_Abstract;
 

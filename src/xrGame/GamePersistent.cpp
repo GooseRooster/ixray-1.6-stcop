@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "GamePersistent.h"
 #include "../xrEngine/Fmesh.h"
@@ -17,7 +17,7 @@
 #include "Actor.h"
 #include "Spectator.h"
 
-#include "../../xrUI/UItextureMaster.h"
+#include "../../xrUI/UITextureMaster.h"
 
 #include "ai_space.h"
 #include "../xrScripts/script_engine.h"
@@ -32,7 +32,7 @@
 #include "ui/UILoadingScreen.h"
 
 #ifndef MASTER_GOLD
-#	include "custommonster.h"
+#	include "CustomMonster.h"
 #endif // MASTER_GOLD
 
 #include "ai_debug.h"

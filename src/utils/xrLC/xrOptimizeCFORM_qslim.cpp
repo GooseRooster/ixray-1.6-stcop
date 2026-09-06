@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Build.h"
 #include "../../xrCore/Collision/xrCDB.h"
 #include "../xrLC_Light/face_smoth_flags.h"

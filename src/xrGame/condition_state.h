@@ -21,6 +21,7 @@ protected:
 
 public:
 	IC											CConditionState		();
+	IC											CConditionState		(const xr_vector<COperatorCondition> &conditions);
 	virtual										~CConditionState	();
 	IC		const xr_vector<COperatorCondition>	&conditions			() const;
 	IC		u8									weight				(const CConditionState &condition) const;

@@ -6,7 +6,7 @@
 //	Description : debug renderer
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #ifdef DEBUG_DRAW
 #	include "debug_renderer.h"
 

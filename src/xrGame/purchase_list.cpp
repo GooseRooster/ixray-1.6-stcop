@@ -6,7 +6,7 @@
 //	Description : purchase list class
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "purchase_list.h"
 #include "InventoryOwner.h"
 #include "GameObject.h"

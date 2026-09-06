@@ -17,7 +17,7 @@
 #include "R_Backend_tree.h"
 
 #ifdef USE_DX11
-#	include "..\xrRenderPC_R4\r_backend_lod.h"
+#	include "../xrRenderPC_R4/R_Backend_LOD.h"
 #endif
 
 #include "FVF.h"

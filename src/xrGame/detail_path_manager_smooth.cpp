@@ -6,13 +6,13 @@
 //	Description : Detail path manager criteria path builder
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "detail_path_manager.h"
 #include "ai_space.h"
 #include "level_graph.h"
 
 #ifdef DEBUG
-#	include "custommonster.h"
+#	include "CustomMonster.h"
 	extern bool show_restrictions(CRestrictedObject *object);
 #endif
 

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Build.h"
 #include "OGF_Face.h"
 //#include "std_classes.h"

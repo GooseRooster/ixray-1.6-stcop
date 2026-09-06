@@ -6,7 +6,7 @@
 //	Description : Sound memory manager
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "sound_memory_manager.h"
 #include "memory_manager.h"
@@ -26,7 +26,7 @@
 #include "../xrEngine/IGame_Persistent.h"
 
 #ifndef MASTER_GOLD
-#	include "actor.h"
+#	include "Actor.h"
 #	include "ai_debug.h"
 #endif // MASTER_GOLD
 

@@ -149,7 +149,7 @@ void CSINI_IdToIndex::DeleteIdToIndexData	()
 }
 
 TEMPLATE_SPECIALIZATION
-typename void	CSINI_IdToIndex::InitInternal ()
+void	CSINI_IdToIndex::InitInternal ()
 {
 	VERIFY(!m_pItemDataVector);
 	T_INIT::InitIdToIndex();

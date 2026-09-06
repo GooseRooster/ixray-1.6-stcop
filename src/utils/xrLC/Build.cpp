@@ -2,7 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Build.h"
 
 #include "../xrLC_Light/xrMU_Model.h"

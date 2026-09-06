@@ -12,7 +12,7 @@
 #if defined(_X360)
 	#include "x360/gsSocketX360.c"
 #elif defined(_XBOX)
-	#include "xbox/gsSocketXBox.c"
+	#include "xbox/gsSocketXbox.c"
 #elif defined(_WIN32)
 	#include "win32/gsSocketWin32.c"
 #elif defined(_LINUX)
@@ -24,7 +24,7 @@
 #elif defined(_PS2)
 	#include "ps2/gsSocketPs2.c"
 #elif defined(_PS3)
-	#include "ps3/gsSocketPs3.c"
+	#include "ps3/gsSocketPS3.c"
 	#include <sys/select.h>
 #elif defined(_PSP)
 	#include "psp/gsSocketPSP.c"

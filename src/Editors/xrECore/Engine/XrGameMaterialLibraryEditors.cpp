@@ -3,7 +3,7 @@
 
 #include "../Editor/UI_MainCommand.h"
 #include "XrGameMaterialLibraryEditors.h"
-//#include "../include/xrapi/xrapi.h"
+//#include "../include/xrapi/xrAPI.h"
 ECORE_API XrGameMaterialLibraryEditors* GameMaterialLibraryEditors = nullptr;
 void XrGameMaterialLibraryEditors::CopyMtlPairs(SGameMtl* from, SGameMtl* to)
 {

@@ -16,7 +16,7 @@
 #	include "../../../ai_space.h"
 #	include "../../../alife_simulator.h"
 #	include "../../../../xrServerEntities/xrServer_Object_Base.h"
-#	include "../../../xrserver.h"
+#	include "../../../xrServer.h"
 #endif
 
 CAI_PseudoDog::CAI_PseudoDog()

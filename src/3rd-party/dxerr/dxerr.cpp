@@ -104,7 +104,7 @@ const WCHAR* WINAPI DXGetErrorStringW( _In_ HRESULT hr )
 #define CHK_ERR CHK_ERR_W
 #define CHK_ERR_WIN32A CHK_ERR_WIN32A_W
 #define CHK_ERR_WIN32_ONLY CHK_ERR_WIN32_ONLY_W
-#define DX_STR_WRAP(...) L##__VA_ARGS__
+#define DX_STR_WRAP(...) L"" __VA_ARGS__
 #include "DXGetErrorString.inl"
 #undef DX_STR_WRAP
 #undef CHK_ERR_WIN32A
@@ -178,7 +178,10 @@ void WINAPI DXGetErrorDescriptionA( _In_ HRESULT hr, _Out_cap_(count) CHAR* desc
 HRESULT WINAPI DXTraceW( _In_z_ const WCHAR* strFile, _In_ DWORD dwLine, _In_ HRESULT hr,
                          _In_opt_ const WCHAR* strMsg, _In_ bool bPopMsgBox )
 {
-#define DX_STR_WRAP(...) L##__VA_ARGS__
+// clang-cl: MSVC's traditional preprocessor expands `##` operands, so the
+// original `L##__VA_ARGS__` idiom doesn't port; plain string concatenation
+// after an empty wide literal is the portable equivalent.
+#define DX_STR_WRAP(...) L"" __VA_ARGS__
 #define DX_CHAR WCHAR
 #define DX_SPRINTF_S swprintf_s
 #define DX_STRCPY_S wcscpy_s

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #include "CharacterPhysicsSupport.h"
 #include "alife_space.h"
@@ -15,9 +15,9 @@
 
 #include "../xrPhysics/PhysicsShell.h"
 #include "../xrPhysics/IActivationShape.h"
-//#include "../xrPhysics/Extendedgeom.h"
+//#include "../xrPhysics/ExtendedGeom.h"
 #include "../xrPhysics/Geometry.h"
-//#include "../xrPhysics/phdynamicdata.h"
+//#include "../xrPhysics/PHDynamicData.h"
 #include "../xrPhysics/IPHCapture.h"
 //#include "../xrPhysics/ICollideValidator.h"
 #include "../xrPhysics/IPHWorld.h"

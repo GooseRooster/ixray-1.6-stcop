@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Torch.h"
 #include "Entity.h"
 #include "Actor.h"

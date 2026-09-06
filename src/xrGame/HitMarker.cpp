@@ -1,5 +1,5 @@
 // exxZERO Time Stamp AddIn. Document modified at : Thursday, March 07, 2002 14:12:50 , by user : Oles , from computer : OLES
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "HitMarker.h"
 #include "../xrEngine/Render.h"
 #include "../xrEngine/LightAnimLibrary.h"

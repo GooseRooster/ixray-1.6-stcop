@@ -2,7 +2,7 @@
 
 
 #include "PhysicsShellHolderEditorBase.h"
-#include "../../xrphysics/physicsshell.h"
+#include "../../xrphysics/PhysicsShell.h"
 #	include "../xrEngine/GameMtlLib.h"
 //CObjectList	 Objects;
 static void SetBoneMaterials( IKinematics &K )

@@ -13,19 +13,19 @@
 #include "object_handler_planner.h"
 #include "ai_monster_space.h"
 #include "xrServer_Objects_ALife_Monsters.h"
-#include "weaponmagazined.h"
+#include "WeaponMagazined.h"
 #include "ef_storage.h"
 #include "ef_pattern.h"
 #include "ai/stalker/ai_stalker.h"
 #include "Inventory.h"
-#include "torch.h"
+#include "Torch.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "memory_manager.h"
 #include "enemy_manager.h"
 #include "ai_object_location.h"
 #include "stalker_animation_manager.h"
 #include "object_handler_planner_impl.h"
-#include "effectorshot.h"
+#include "EffectorShot.h"
 
 CObjectHandler::CObjectHandler		()
 {

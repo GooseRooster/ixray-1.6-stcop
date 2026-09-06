@@ -137,17 +137,16 @@ template <typename _class_type>
 		g_pGameLevel->Objects.relcase_register	(
 			CObjectList::RELCASE_CALLBACK (
 				self,
-				function_to_bind)
+				function_to_bind),
+			nullptr
 		);
 	}
 
 template <typename _class_type>
 	void relcase_unregister	(_class_type *self, void ( _class_type::* function_to_bind)(CObject*))
 	{
-		g_pGameLevel->Objects.relcase_unregister	(
-			CObjectList::RELCASE_CALLBACK (
-				self,
-				function_to_bind)
-		);
+		(void)self;
+		(void)function_to_bind;
+		g_pGameLevel->Objects.relcase_unregister	(nullptr);
 	}
 #endif    

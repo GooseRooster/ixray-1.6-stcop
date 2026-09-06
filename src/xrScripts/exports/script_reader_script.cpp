@@ -65,7 +65,7 @@ static void w_file_from_string(const char* path, const char* buffer)
 }
 
 #pragma optimize("s",on)
-void CScriptReader::script_register(lua_State *L)
+template<> void class_exporter_lib<IReader>::script_register(lua_State *L)
 {
 	module(L)
 	[

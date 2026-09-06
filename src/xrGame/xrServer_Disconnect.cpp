@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "xrServer.h"
 #include "file_transfer.h"
 #include "screenshot_server.h"

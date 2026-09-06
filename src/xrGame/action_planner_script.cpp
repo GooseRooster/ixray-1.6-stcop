@@ -6,7 +6,7 @@
 //	Description : Action planner script export
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "script_action_planner_wrapper.h"
 #include "script_game_object.h"
@@ -30,7 +30,7 @@ CScriptActionPlanner *cast_planner(CScriptActionBase *action)
 }
 
 #pragma optimize("s",on)
-void CScriptActionPlanner::script_register(lua_State *L)
+template<> void CActionPlanner<CScriptGameObject>::script_register(lua_State *L)
 {
 	module(L)
 	[

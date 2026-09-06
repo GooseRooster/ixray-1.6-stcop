@@ -1,7 +1,7 @@
 // sbmfcsample.cpp : Defines the class behaviors for the application.
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "sbmfcsample.h"
 #include "sbmfcsampleDlg.h"
 

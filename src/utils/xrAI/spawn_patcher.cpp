@@ -6,7 +6,7 @@
 //	Description : spawn patcher class
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #if 0
 #	include "spawn_patcher.h"

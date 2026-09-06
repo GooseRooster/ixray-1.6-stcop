@@ -6,7 +6,7 @@
 //	Description : ai obstacle class inline functions
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "ai_obstacle.h"
 #include "ai_space.h"
 #include "level_graph.h"

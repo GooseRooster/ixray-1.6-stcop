@@ -6,7 +6,7 @@
 //	Description : Game graph builder
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "game_graph_builder.h"
 #include "level_graph.h"
 #include "graph_abstract.h"

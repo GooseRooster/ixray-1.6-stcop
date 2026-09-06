@@ -6,11 +6,11 @@
 //	Description : Patrol path storage
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "patrol_path_storage.h"
 #include "patrol_path.h"
 #include "patrol_point.h"
-#include "levelgamedef.h"
+#include "LevelGameDef.h"
 
 CPatrolPathStorage::~CPatrolPathStorage		()
 {

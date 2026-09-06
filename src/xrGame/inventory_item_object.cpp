@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 //#include "stdafx.h"
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "inventory_item_object.h"
 #include "../Include/xrRender/Kinematics.h"

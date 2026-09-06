@@ -6,7 +6,7 @@
 //	Description : Eatable item object implementation
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "eatable_item_object.h"
 
 CEatableItemObject::CEatableItemObject	()

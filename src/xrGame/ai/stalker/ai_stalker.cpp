@@ -67,7 +67,7 @@
 #ifdef DEBUG
 #	include "../../alife_simulator.h"
 #	include "../../alife_object_registry.h"
-#	include "../../level.h"
+#	include "../../Level.h"
 #	include "../../map_location.h"
 #	include "../../map_manager.h"
 #endif // DEBUG

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 
 #include "Build.h"
 #include "../xrLC_Light/xrLC_GlobalData.h"

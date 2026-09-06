@@ -818,6 +818,11 @@ public:
         m_Closure.CopyFrom(this, x.m_Closure); }
     void operator = (const FastDelegateImpl &x)  {
         m_Closure.CopyFrom(this, x.m_Closure); }
+    // clang-cl: with the safe_bool conversion operator present, `= nullptr`
+    // is ambiguous between the function-pointer and copy-assignment
+    // overloads. MSVC resolves it to "clear" (see changelog below).
+    void operator = (std::nullptr_t)  {
+        clear(); }
     bool operator ==(const FastDelegateImpl &x) const {
         return m_Closure.IsEqual(x.m_Closure);  }
     bool operator !=(const FastDelegateImpl &x) const {
@@ -931,6 +936,9 @@ public:
     : BaseType(function_to_bind)  { }
   void operator = (const BaseType &x)  {
         *static_cast<BaseType*>(this) = x; }
+  // clang-cl: declaring operator= here hides the base-class nullptr overload.
+  void operator = (std::nullptr_t)  {
+        this->clear(); }
 };
 
 #endif //FASTDELEGATE_ALLOW_FUNCTION_TYPE_SYNTAX

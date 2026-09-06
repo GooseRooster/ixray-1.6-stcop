@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Actor.h"
 #include "../xrEngine/CameraBase.h"
 #ifdef DEBUG
@@ -16,7 +16,7 @@
 #include "Level.h"
 #include "../xrCore/Collision/cl_intersect.h"
 
-//#include "elevatorstate.h"
+//#include "ElevatorState.h"
 #include "CharacterPhysicsSupport.h"
 #include "EffectorShot.h"
 

@@ -4,7 +4,7 @@
 #ifdef IXR_WINDOWS
 #	include <rpc.h>
 #	include <rpcdce.h>
-#	pragma comment(lib, "Rpcrt4.lib")
+#	pragma comment(lib, "rpcrt4.lib")
 #else
 #	include <uuid/uuid.h>
 #endif

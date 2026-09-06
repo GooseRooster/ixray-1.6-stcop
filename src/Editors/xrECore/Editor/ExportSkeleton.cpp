@@ -5,7 +5,7 @@
 #include "ExportObjectOGF.h"
 #include "EditObject.h"
 #include "EditMesh.h"
-#include "../xrEngine/fmesh.h"
+#include "../xrEngine/Fmesh.h"
 
 #include "../xrEngine/std_classes.h"
 #include "../xrEngine/bone.h"

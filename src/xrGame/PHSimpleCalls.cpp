@@ -1,7 +1,7 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "../xrPhysics/PhysicsShell.h"
 #include "PHSimpleCalls.h"
-//#include	"phobject.h"
+//#include	"PHObject.h"
 //#include	"PHWorld.h"
 //extern		CPHWorld			*ph_world;
 #include "../xrPhysics/IPHWorld.h"

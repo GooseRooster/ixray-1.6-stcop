@@ -9,10 +9,10 @@
 #include "PHJointDestroyInfo.h"
 #include "PHSplitedShell.h"
 
-//#include "gameobject.h"
+//#include "GameObject.h"
 #include "IPhysicsShellHolder.h"
 
-//#include "objectdump.h"
+//#include "ObjectDump.h"
 #include "phvalide.h"
 
 #include "../Include/xrRender/Kinematics.h"

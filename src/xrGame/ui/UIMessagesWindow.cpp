@@ -6,7 +6,7 @@
 //
 // Copyright 2005 GSC Game World
 
-#include "StdAfx.h"
+#include "stdafx.h"
 bool		IsGameTypeSingle();
 #include "UIMessagesWindow.h"
 #include "UIGameLog.h"

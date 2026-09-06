@@ -1,7 +1,7 @@
 // PeerTest.cpp : Defines the class behaviors for the application.
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "PeerTest.h"
 #include "PeerTestDlg.h"
 

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "weaponBM16.h"
 
 CWeaponBM16::~CWeaponBM16()

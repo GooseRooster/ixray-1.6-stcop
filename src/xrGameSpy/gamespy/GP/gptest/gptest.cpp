@@ -1,7 +1,7 @@
 // gptest.cpp : Defines the class behaviors for the application.
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "gptest.h"
 #include "gptestDlg.h"
 

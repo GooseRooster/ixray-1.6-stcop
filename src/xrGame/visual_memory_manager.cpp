@@ -6,7 +6,7 @@
 //	Description : Visual memory manager
 ////////////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "pch_script.h"
 #include "visual_memory_manager.h"
 #include "ai/stalker/ai_stalker.h"
@@ -29,7 +29,7 @@
 #include "ai/monsters/basemonster/base_monster.h"
 
 #ifndef MASTER_GOLD
-#	include "actor.h"
+#	include "Actor.h"
 #	include "ai_debug.h"
 #endif // MASTER_GOLD
 
