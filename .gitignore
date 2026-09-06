@@ -69,6 +69,10 @@ atmosfear_options.ltx
 # CLion cache
 cmake-build*/
 
+# Nix devshell / direnv
+/.dev.local.sh
+/.direnv/
+
 # Optick
 *.opt
 linux/sal.h

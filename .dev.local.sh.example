@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Personal dev hook — copy to ./.dev.local.sh (gitignored) to opt in.
+#
+# The flake's shellHook sources ./.dev.local.sh at the end of shell setup, so
+# anything you export or run here happens after the toolchain, libraries, and
+# nvim-relevant tools are already in place.
+#
+# This file is only a template — the real ./.dev.local.sh is entirely yours.
+# Teammates without one see nothing (the source is guarded).
+
+# ─── Personal env vars ─────────────────────────────────────────────────────
+#
+# Example: point CMake at extra prefixes, or toggle build options without
+# editing the CMakeLists:
+#
+# export CMAKE_GENERATOR="Ninja"
+
+# ─── Running the built binaries ────────────────────────────────────────────
+#
+# NuGet ships some dependencies as prebuilt glibc .so files under
+# build/packages/*/runtimes/linux-x64/native/ (GameNetworkingSockets +
+# libssl/libprotobuf, LuaJIT, mimalloc). They link fine at build time, but
+# when *running* the engine you may need them on the loader path. On NixOS
+# enable `programs.nix-ld.enable = true;` in your system config, and/or set:
+#
+# export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD/build/packages/IXRay.Packages.LuaJIT.Runtimes.linux-x64.2023.8.23.1-open/runtimes/linux-x64/native"
+
+# ─── Personal aliases / functions ──────────────────────────────────────────
+#
+# Configure with the project's Linux preset (GL renderer, Ninja Multi-Config):
+# alias configure='cmake --preset Engine-Base-Linux-NonUnity'
+#
+# Quick build of just the compressor (matches the Linux CI):
+# alias build-compressor='cmake --build build --target xrCompress'
