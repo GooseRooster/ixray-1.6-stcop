@@ -193,6 +193,14 @@
           # Artifacts are regular Windows .exe/.dll — run via Proton/Wine
           # (Linux gamers: point Proton at the game install with these
           # binaries copied over bin/).
+          #
+          # clangd: compile_commands.json from this build is unity-chunked
+          # (xrGame etc. build via UnityBuild), so individual sources have
+          # no entries and clangd falls back to wrong random commands →
+          # false-error storms. `ixray-clangd-db` configures a unity-FREE
+          # build dir (configure only, never built) purely to emit per-file
+          # compile commands; the root compile_commands.json symlink points
+          # at it. Regenerate it after CMake changes.
           # clangd also benefits: compile_commands.json from this build
           # carries the clang-cl driver flags, so IntelliSense sees the real
           # Windows SDK/STL headers.
@@ -210,21 +218,32 @@
               makeWrapper ${llvmCross.clang-unwrapped}/bin/clang-cl $out/bin/clang-cl \
                 --add-flags "-resource-dir ${llvmCross.clang-unwrapped.lib}/lib/clang/${nixpkgs.lib.versions.major llvmCross.clang-unwrapped.version}"
             '';
+            # Same trick for clangd: the nixpkgs clang wrapper injects the
+            # host toolchain (GCC libstdc++, glibc headers) into every parse,
+            # which pollutes the MSVC-targeted compile_commands.json from
+            # build-win/ with linux headers and buries IntelliSense in
+            # errors. Raw clangd + explicit resource-dir stays clean.
+            clangdRaw = pkgs.runCommand "clangd-msvc" { nativeBuildInputs = [ pkgs.makeWrapper ]; } ''
+              mkdir -p $out/bin
+              makeWrapper ${llvmCross.clang-unwrapped}/bin/clangd $out/bin/clangd \
+                --add-flags "-resource-dir ${llvmCross.clang-unwrapped.lib}/lib/clang/${nixpkgs.lib.versions.major llvmCross.clang-unwrapped.version}"
+            '';
           in
             pkgs.mkShell {
             # libllvm (not `llvm`: the wrapped multi-output llvm package
             # breaks nix-shell dependency validation) carries llvm-rc,
             # libllvm (not `llvm`: the wrapped multi-output llvm package
             # breaks nix-shell dependency validation) carries llvm-rc,
-            # llvm-lib, llvm-mt; lld carries lld-link; clang-tools carries
-            # clangd, version-matched to the cross compiler (it parses the
-            # clang-cl compile_commands.json from build-win/).
+            # llvm-lib, llvm-mt; lld carries lld-link; clangdRaw carries
+            # clangd (version-matched to the cross compiler — see the
+            # clangdRaw comment for why the wrapped clangd cannot be used
+            # with the clang-cl compile_commands.json).
             packages = (with llvmCross; [
               lld # lld-link
               libllvm # llvm-rc, llvm-lib, llvm-mt
-              clang-tools # clangd
             ]) ++ (with pkgs; [
               clangCl # clang-cl (resource-dir-wrapped)
+              clangdRaw # clangd (raw, resource-dir-wrapped)
               vscode-extensions.vadimcn.vscode-lldb.adapter # codelldb (nvim DAP)
               neocmakelsp # cmake nvim feature's LSP
               cmake
@@ -270,12 +289,14 @@
               mkdir -p "$helpers"
               printf '#!/usr/bin/env bash\ncmake -B build-win -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake "$@"\n' > "$helpers/ixray-configure-win"
               printf '#!/usr/bin/env bash\ncmake --build build-win --config Release "$@"\n' > "$helpers/ixray-build-win"
+              printf '#!/usr/bin/env bash\ncmake -B build-lsp -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake -DIXRAY_UNITYBUILD=OFF "$@"\n' > "$helpers/ixray-clangd-db"
               chmod +x "$helpers"/ixray-*
               export PATH="$PWD/$helpers:$PATH"
 
               echo "IX-Ray winCross shell (Windows x64 MSVC cross-compile — the playable game):"
               echo "  $(clang-cl --version | head -n1), lld-link $(lld-link --version | head -n1), SDK: $XRAY_MSVC_SDK"
               echo "  ixray-configure-win && ixray-build-win"
+              echo "  ixray-clangd-db   # regenerate per-file compile_commands for clangd"
               echo "  → build-win/bin/Release/  (copy contents over the game's bin/ for Proton)"
             '';
           };
