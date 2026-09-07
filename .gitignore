@@ -74,6 +74,9 @@ cmake-build*/
 /.direnv/
 /.devshell-helpers/
 
+# clangd compile database (symlink into your build dir of choice)
+/compile_commands.json
+
 # Optick
 *.opt
 linux/sal.h

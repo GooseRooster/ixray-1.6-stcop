@@ -214,12 +214,19 @@
             pkgs.mkShell {
             # libllvm (not `llvm`: the wrapped multi-output llvm package
             # breaks nix-shell dependency validation) carries llvm-rc,
-            # llvm-lib, llvm-mt; lld carries lld-link.
+            # libllvm (not `llvm`: the wrapped multi-output llvm package
+            # breaks nix-shell dependency validation) carries llvm-rc,
+            # llvm-lib, llvm-mt; lld carries lld-link; clang-tools carries
+            # clangd, version-matched to the cross compiler (it parses the
+            # clang-cl compile_commands.json from build-win/).
             packages = (with llvmCross; [
               lld # lld-link
               libllvm # llvm-rc, llvm-lib, llvm-mt
+              clang-tools # clangd
             ]) ++ (with pkgs; [
               clangCl # clang-cl (resource-dir-wrapped)
+              vscode-extensions.vadimcn.vscode-lldb.adapter # codelldb (nvim DAP)
+              neocmakelsp # cmake nvim feature's LSP
               cmake
               ninja
               git
