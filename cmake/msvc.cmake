@@ -1,5 +1,9 @@
 # Global options
-set(CMAKE_CXX_FLAGS_DEBUG "/MD")
+# NOTE: do NOT pin /MD here — CMake's CMAKE_MSVC_RUNTIME_LIBRARY abstraction
+# (CMP0091) owns the CRT selector and assembles it per configuration. Hand-
+# pinning /MD in these strings mixes with the mapped flag and produces
+# commands carrying BOTH /MD and -MDd (two CRT heaps → heap corruption).
+set(CMAKE_CXX_FLAGS_DEBUG "")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /UMBCS /D_UNICODE /DUNICODE")
 
 # Win32 Extensions
@@ -21,7 +25,7 @@ if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(-msse4.2)
 endif()
 string(REGEX REPLACE "/EH[a-z]+" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-add_compile_options("$<$<CONFIG:DEBUG>:/Od>" "$<$<CONFIG:DEBUG>:/MD>" "/Ob1")
+add_compile_options("$<$<CONFIG:DEBUG>:/Od>" "/Ob1")
 add_compile_options("$<$<CONFIG:RELEASE>:/Ot>"  "$<$<CONFIG:RELEASE>:/Ob2>" "$<$<CONFIG:RELWITHDEBINFO>:/wd4577>")
 
 add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)

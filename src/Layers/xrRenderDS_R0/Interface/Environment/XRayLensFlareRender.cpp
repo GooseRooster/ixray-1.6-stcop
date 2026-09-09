@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "../../XrEngine/xr_efflensflare.h"
+#include "../../xrEngine/xr_efflensflare.h"
 
 CDS0_LensFlareRender::CDS0_LensFlareRender()
 {

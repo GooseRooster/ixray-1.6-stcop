@@ -20,6 +20,12 @@ option(IXRAY_COMPRESSOR_ONLY "Build only compressor" OFF)
 option(IXRAY_CI "GitHub Actions build" OFF)
 set(IXR_TEST_CI NOT IXRAY_UTILS OR NOT IXRAY_CI)
 
+# CRT: one runtime for all configurations — the release DLL CRT (/MD),
+# matching upstream's intent. CMake's CMAKE_MSVC_RUNTIME_LIBRARY abstraction
+# (CMP0091) assembles the per-config selector; do NOT hand-pin /MD anywhere
+# else (see cmake/msvc.cmake).
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+
 # SDL stuff
 set(SDL_STATIC OFF)
 set(SDL_TEST_LIBRARY OFF)
@@ -108,6 +114,19 @@ include("${CMAKE_MODULE_PATH}/FindLuaBind.cmake")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # 3rd libraries
+# ── CRT flags sanitizer (belt and braces) ───────────────────────────────
+# Strip any stray CRT selector from per-config flags so a single command
+# never carries two of them (two CRT heaps in one module → heap corruption).
+# The actual selector comes from CMAKE_MSVC_RUNTIME_LIBRARY above.
+foreach(_lang C CXX)
+    foreach(_cfg DEBUG RELWITHDEBINFO RELEASE MINSIZEREL)
+        set(_flags_var CMAKE_${_lang}_FLAGS_${_cfg})
+        set(_flags "${${_flags_var}}")
+        string(REGEX REPLACE "[-/]MD[dD]?|[-/]MT[dD]?" "" _flags "${_flags}")
+        set(${_flags_var} "${_flags}")
+    endforeach()
+endforeach()
+
 add_subdirectory("src/3rd-party")
 
 # Engine libraries

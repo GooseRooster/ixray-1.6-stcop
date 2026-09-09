@@ -1,0 +1,14 @@
+# clangd configuration
+CompileFlags:
+  Remove:
+    - /FI*
+    - -FI*
+    - /Yu*
+    - /Fp*
+    - /Yc*
+Diagnostics:
+  Suppress:
+    - unused-command-line-argument
+    - msvc-exception-spec
+    - inline-new-delete
+    - pragma-messages

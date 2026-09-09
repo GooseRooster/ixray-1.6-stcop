@@ -190,10 +190,6 @@
           #
           # Output dir: build-win/bin/Release/ — xrEngine.exe + xrGame.dll +
           # R1/R2/R4 render DLLs + all third-party DLLs (complete runtime).
-          # Artifacts are regular Windows .exe/.dll — run via Proton/Wine
-          # (Linux gamers: point Proton at the game install with these
-          # binaries copied over bin/).
-          #
           # clangd: compile_commands.json from this build is unity-chunked
           # (xrGame etc. build via UnityBuild), so individual sources have
           # no entries and clangd falls back to wrong random commands →
@@ -287,7 +283,7 @@
               #    PATH scripts instead of aliases, works in any shell).
               helpers=".devshell-helpers"
               mkdir -p "$helpers"
-              printf '#!/usr/bin/env bash\ncmake -B build-win -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake "$@"\n' > "$helpers/ixray-configure-win"
+              printf '#!/usr/bin/env bash\ncmake -B build-win -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake -DIXRAY_MP=ON "$@"\n' > "$helpers/ixray-configure-win"
               printf '#!/usr/bin/env bash\ncmake --build build-win --config Release "$@"\n' > "$helpers/ixray-build-win"
               printf '#!/usr/bin/env bash\ncmake -B build-lsp -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake -DIXRAY_UNITYBUILD=OFF "$@"\n' > "$helpers/ixray-clangd-db"
               chmod +x "$helpers"/ixray-*

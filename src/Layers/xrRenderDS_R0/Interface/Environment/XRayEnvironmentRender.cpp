@@ -43,7 +43,7 @@ void CDS0_EnvDescriptorRender::OnDeviceDestroy()
 
 }
 
-#include "../../XrEngine/xr_efflensflare.h"
+#include "../../xrEngine/xr_efflensflare.h"
 CDS0_EnvironmentRender::CDS0_EnvironmentRender()
 {
 
