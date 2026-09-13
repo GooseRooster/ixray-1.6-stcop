@@ -124,6 +124,13 @@ XRCORE_API		BOOL			is_stack_ptr		( void* _ptr)
 
 #ifdef IXR_WINDOWS
 #pragma init_seg(lib)
-__declspec(allocate(".Hook"))
+// NOTE: the original hack also carried __declspec(allocate(".Hook")) with
+// `#pragma section(".Hook", read)` — a READ-ONLY section. MSVC silently
+// ignores the allocate for this global (the shipped MSVC-built xrCore.dll
+// has no .Hook section; Memory lands in writable .data), but clang-cl
+// honors it — so the xrMemory ctor's first store wrote into a read-only
+// page and the engine died before logging anything (c0000005 in
+// xrMemory::xrMemory during DLL_PROCESS_ATTACH). Keep only the early
+// init_seg here; Memory stays in normal writable .data.
 #endif
 xrMemory Memory;

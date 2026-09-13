@@ -706,11 +706,12 @@ void CCC_Register()
 	CMD2(CCC_Boolean,	"rs_fps_show",			&IsFpsShow);
 	CMD4(CCC_Integer,	"rs_fps_limit",			&g_dwFPSlimit,		0, 1000);
 
-	CMD3(CCC_Mask,		"rs_v_sync",			&psDeviceFlags,		rsVSync				);
-	
-#ifdef MASTER_GOLD
+	CMD3(CCC_Mask, "rs_v_sync",			&psDeviceFlags,		rsVSync				);
+
+	// Was gated under MASTER_GOLD ("Disable fullscreen on non-release
+	// configuration"), but the shipped game builds are RelWithDebInfo —
+	// which never defines MASTER_GOLD — leaving no way to toggle fullscreen.
 	CMD3(CCC_Mask, "rs_fullscreen", &psDeviceFlags, rsFullscreen);
-#endif // MASTER_GOLD
 
 	//CMD3(CCC_Mask,		"rs_refresh_60hz",		&psDeviceFlags,		rsRefresh60hz			);
 	CMD3(CCC_Mask,		"rs_stats",				&psDeviceFlags,		rsStatistic				);
