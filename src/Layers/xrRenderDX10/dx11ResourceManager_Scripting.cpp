@@ -329,6 +329,8 @@ Shader*	CResourceManager::_lua_Create		(LPCSTR d_shader, LPCSTR s_textures)
 	}
 
 	// Search equal in shaders array
+	if (!S.E[0] && !S.E[4])
+		Msg("! Renderer: shader '%s' compiled no elements, it won't render (missing/failed lua shader?)", s_shader);
 	for (u32 it=0; it<v_shaders.size(); it++)
 		if (S.equal(v_shaders[it]))	return v_shaders[it];
 

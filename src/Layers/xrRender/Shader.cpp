@@ -99,17 +99,26 @@ BOOL ShaderElement::equal	(ShaderElement* S)
 }
 
 //
+//
+// Not every shader fills all five elements (e.g. distortion-only particle
+// shaders define just "l_special", so E[0..3] stay null) — comparing a pair
+// where either side is null must not dereference it. Calling a member on a
+// null this is UB and clang-cl optimizes the callee's null guard away
+// (observed as an 0xC0000005 in Shader::equal at particles library load).
 BOOL Shader::equal	(Shader& S)
 {
-	return
-		E[0]->equal(&*S.E[0]) &&
-		E[1]->equal(&*S.E[1]) &&
-		E[2]->equal(&*S.E[2]) &&
-		E[3]->equal(&*S.E[3]) &&
-		E[4]->equal(&*S.E[4]);
+	for (u32 i = 0; i < 5; i++)
+	{
+		if (!E[i] || !S.E[i])
+			return E[i] == S.E[i] ? TRUE : FALSE;
+		if (!E[i]->equal(&*S.E[i]))
+			return FALSE;
+	}
+	return TRUE;
 }
 BOOL Shader::equal	(Shader* S)
-{	return	equal(*S);	}
+{	if (!S)	return	FALSE;
+	return	equal(*S);	}
 
 void STextureList::clear()
 {
