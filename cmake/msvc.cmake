@@ -51,6 +51,18 @@ add_link_options("$<$<CONFIG:RELEASE>:/INCREMENTAL:NO>" "$<$<CONFIG:RELWITHDEBIN
 # Upstream MSVC/CI builds are intentionally left unchanged.
 add_link_options("$<$<AND:$<CONFIG:RELEASE>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:/DEBUG>")
 
+# clang-cl (cross builds): adopt MSVC optimization semantics for UB that GSC
+# code relies on and MSVC never exploits. Clang -O2 otherwise misoptimizes it:
+#   -fno-strict-aliasing          — MSVC never uses TBAA; the engine puns types
+#                                   (e.g. *(float*)&u32 in sound occlusion code)
+#   -fwrapv                       — MSVC wraps on signed overflow
+#   -fno-delete-null-pointer-checks — MSVC keeps null guards; clang erases
+#                                   them via dereference inference (this caused
+#                                   the Shader::equal null-this crash)
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_compile_options(-fno-strict-aliasing -fwrapv -fno-delete-null-pointer-checks)
+endif()
+
 ## Exceptions...
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     string(REGEX REPLACE "/EH[a-z]+" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})

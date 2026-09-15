@@ -100,6 +100,23 @@ for Release (clang-cl builds only — upstream MSVC/CI binaries are untouched), 
 - `IXRAY_CONFIG=RelWithDebInfo ixray-build-win` builds a different config with the
   same helper (no `MASTER_GOLD`, so not a drop-in for Release crash debugging).
 
+## MSVC-semantics flags for clang-cl
+
+GSC-era code relies on UB that MSVC never exploits but clang -O2 does. Two crashes
+surfaced this way before the fix (`Shader::equal` null-`this` guard erased, and a
+null-reference `if (&ref)` check folded in HudSound), so `cmake/msvc.cmake` applies
+these for all non-MSVC (clang-cl) builds:
+
+- `-fno-strict-aliasing` — the engine puns types (e.g. `*(float*)&u32` in sound
+  occlusion code); MSVC never uses TBAA.
+- `-fwrapv` — MSVC wraps on signed overflow.
+- `-fno-delete-null-pointer-checks` — stop clang erasing null guards via
+  dereference inference (the direct cause of the `Shader::equal` crash).
+
+These don't cover *all* MSVC-tolerated UB: member calls on a null `this` at the
+call site remain UB regardless of flags — if a crash shows a member call on a
+null receiver, fix it with a plain pointer check at the call site (see HudSound).
+
 ## Quick reference
 
 | Thing | Where |
