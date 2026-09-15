@@ -170,7 +170,12 @@ void CAMDReader::Initialize()
 
 void CAMDReader::Destroy()
 {
-	if (hAMDAGS != nullptr)
+	// AGSCrossfireGPUExtDestroy is only loaded on the "new AGS driver" path
+	// (agsGetCrossfireGPUCount missing) and only pairs with a device created
+	// via the AGS extension; on the legacy-driver path the pointer is null and
+	// calling it was a call through a null function pointer on every exit
+	// (0xC0000005 with Rip==0 while "Destroying Direct3D...").
+	if (hAMDAGS != nullptr && AGSCrossfireGPUExtDestroy != nullptr && ReturnedParams.pDevice != nullptr)
 	{
 		u32 DeviceRefs = 0;
 		u32 DeviceImmediateRefs = 0;
@@ -258,6 +263,9 @@ void CAMDReader::MakeGPUCount()
 		u32 DeviceRefs = 0;
 		u32 DeviceImmediateRefs = 0;
 		AGSCrossfireGPUExtDestroy(Context, ReturnedParams.pDevice, &DeviceRefs, ReturnedParams.pImmediateContext, &DeviceImmediateRefs);
+		// The extension device is consumed here; clear the params so a later
+		// CAMDReader::Destroy can't double-destroy the stale pointers.
+		RtlZeroMemory(&ReturnedParams, sizeof(ReturnedParams));
 	}
 
 	if (status != AGS_SUCCESS) Msg("[AGS] Error! Unable to get CrossFire GPU count (%d)", status);
