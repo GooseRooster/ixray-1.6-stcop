@@ -60,6 +60,15 @@ add_link_options("$<$<AND:$<CONFIG:RELEASE>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:/DEB
 #                                   them via dereference inference (this caused
 #                                   the Shader::equal null-this crash)
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # clang's /fp:fast additionally implies -fno-honor-nans/-fno-honor-infinities
+    # and FMA contraction, which MSVC's /fp:fast never assumes. The engine's
+    # physics is built on them: dInfinity (HUGE_VALF) comparisons gate the
+    # tri-collider state machine (x<dInfinity folding to 'true' produced the
+    # spawn-time 0xC0000005) and isnan() folded to false breaks trajectory
+    # handling (the _M_X64 test_nan workaround in dSortTriPrimitive.h).
+    # These must go through /clang: — the clang-cl driver ignores bare -f
+    # forms of them, and they must come after /fp:fast to take effect.
+    add_compile_options(/clang:-fhonor-nans /clang:-fhonor-infinities /clang:-ffp-contract=off)
     add_compile_options(-fno-strict-aliasing -fwrapv -fno-delete-null-pointer-checks)
 endif()
 
