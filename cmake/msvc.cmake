@@ -44,6 +44,12 @@ add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:/Ob2>")
 add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:/Ot>")
 add_link_options("$<$<AND:$<CONFIG:RELEASE>,$<CXX_COMPILER_ID:MSVC>>:/LTCG:incremental>" "$<$<AND:$<CONFIG:RELWITHDEBINFO>,$<CXX_COMPILER_ID:MSVC>>:/LTCG:incremental>")
 add_link_options("$<$<CONFIG:RELEASE>:/INCREMENTAL:NO>" "$<$<CONFIG:RELWITHDEBINFO>:/INCREMENTAL:NO>")
+# Cross builds (clang-cl + lld-link): link debug info also in Release so PDBs
+# are emitted next to the binaries — the in-engine stack tracer (SymGetSym*) and
+# offline symbolization both need them. Objects are already compiled with /Zi
+# for all configs; without /DEBUG lld-link discards that info at link time.
+# Upstream MSVC/CI builds are intentionally left unchanged.
+add_link_options("$<$<AND:$<CONFIG:RELEASE>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:/DEBUG>")
 
 ## Exceptions...
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

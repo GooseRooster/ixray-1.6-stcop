@@ -76,13 +76,29 @@ driven by CMake/Ninja. Everything lives in `flake.nix` (`winCross` devShell) and
   by older MSVC generations, e.g. `_MSC_VER=1900` in DirectXTex) — linker-checked
   (`FAILIFMISMATCH`) for CRT/iterator level but semantically unchecked. Debug PDBs +
   winedbg is the toolchain for anything that surfaces.
-- **No PDBs in Release**: `/Zi`-built but `/DEBUG`-less; consider emitting PDBs for
-  Release/RelWithDebInfo cross builds to enable symbolized crash logs.
 - **`/GL`+`/LTCG` loss**: whole-program optimization is MSVC-only; optional follow-up is
   LTO (`-flto` + lld-link supports it) for size/perf parity.
 - **Native Linux playable engine**: still not buildable (unconditional `d3d9/d3d11.h`
   includes in `xrAbstractions`, no GL renderer). Separate long-term effort; cross build is
   the supported path.
+
+## PDBs & crash symbolization
+
+All cross configs now emit PDBs next to the binaries: `cmake/msvc.cmake` links `/DEBUG`
+for Release (clang-cl builds only — upstream MSVC/CI binaries are untouched), and
+`/Zi` was already applied per-object for every config.
+
+- Grab them from `build-win/bin/Release/*.pdb` (must be copied together with the
+  *same build's* binaries — the PDB GUID only matches the DLLs it was linked with).
+- The runtime stack tracer (`src/xrCore/StackTrace/StackTrace.h`) prints each frame as
+  `module at 0xABS (base 0xBASE, rva 0xRVA)`; if Wine's builtin dbghelp can't load the
+  PDB under Proton (symbol line missing from the log), symbolize offline on Linux:
+  `llvm-symbolizer --relative-address --obj=xrRender_R4.dll 0xRVA...` (verified working
+  with the winCross LLVM 20 toolchain; alternative: `llvm-pdbutil dump -lines`).
+  Note `bin/Release` PDBs match Release (MASTER_GOLD) builds — Debug/RelWithDebInfo
+  PDBs must not be mixed in, those configs compile different code.
+- `IXRAY_CONFIG=RelWithDebInfo ixray-build-win` builds a different config with the
+  same helper (no `MASTER_GOLD`, so not a drop-in for Release crash debugging).
 
 ## Quick reference
 

@@ -35,9 +35,19 @@ namespace StackTrace
 			frameStr.append(moduleName);
 		}
 
-		//-' Address:
+		//-' Address (module base + RVA included for offline symbolization
+		// when dbghelp can't load the PDB at runtime, e.g. under Proton):
 		string512 formatBuff;
-		xr_sprintf(formatBuff, _countof(formatBuff), " at %p", stackFrame->AddrPC.Offset);
+		const DWORD_PTR dwModuleBase = SymGetModuleBase(GetCurrentProcess(), stackFrame->AddrPC.Offset);
+		if (dwModuleBase)
+		{
+			xr_sprintf(formatBuff, _countof(formatBuff), " at %p (base %p, rva 0x%I64x)",
+				stackFrame->AddrPC.Offset, dwModuleBase, stackFrame->AddrPC.Offset - dwModuleBase);
+		}
+		else
+		{
+			xr_sprintf(formatBuff, _countof(formatBuff), " at %p", stackFrame->AddrPC.Offset);
+		}
 		frameStr.append(formatBuff);
 
 		//-' Function info:

@@ -506,6 +506,12 @@ LONG WINAPI UnhandledFilter	(_EXCEPTION_POINTERS *pExceptionInfo)
 			xr_strcat(error_message, sizeof(error_message), "\r\n");
 			os_clipboard::update_clipboard(buffer);
 		}
+
+		// GetLastError() is unreliable at exception time (it can carry a
+		// stale code from before the fault), so report the exception code
+		// itself in addition to whatever format_message produced:
+		if (shared_str_initialized)
+			Msg("[exception][%8u]    : 0x%08X", pExceptionInfo->ExceptionRecord->ExceptionCode, pExceptionInfo->ExceptionRecord->ExceptionCode);
 	}
 
 	if (shared_str_initialized)
