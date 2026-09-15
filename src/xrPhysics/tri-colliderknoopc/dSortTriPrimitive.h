@@ -93,6 +93,19 @@ IC int dcTriListCollider::dSortTriPrimitiveCollide (
 	//VERIFY( g_pGameLevel );
 	CDB::TRI*       T_array                         = inl_ph_world().ObjectSpace().GetStaticTris();
 	const Fvector*	 V_array						 = inl_ph_world().ObjectSpace().GetStaticVerts();
+	// Diagnostics for the 0xC0000005 reading T->material during spawn: catches
+	// any tri pointer that fell out of the static model's tri array (stale
+	// cached pointer / bad cached index) and reports exactly where it came from.
+	const int static_tris_count = inl_ph_world().ObjectSpace().GetStaticModel()->get_tris_count();
+	auto dbg_check_tri = [&](CDB::TRI* T, u32 idx, LPCSTR site)
+	{
+		if (T < T_array || T >= T_array + static_tris_count)
+		{
+			Msg("! dSortTriPrimitiveCollide: invalid static tri ptr %p (base %p, count %d, index %u) at '%s'",
+				(void*)T, (void*)T_array, static_tris_count, (u32)(T ? (T - T_array) : u32(-1)), site);
+			FATAL("dSortTriPrimitiveCollide: invalid triangle pointer");
+		}
+	};
 	if (no_last_pos || !last_box.contains(box))
 	{
 
@@ -113,6 +126,12 @@ IC int dcTriListCollider::dSortTriPrimitiveCollide (
 		data->cashed_tries.resize(0);
 		for (CDB::RESULT* Res = R_begin; Res != R_end; ++Res)
 		{
+			if ((u32)Res->id >= (u32)static_tris_count)
+			{
+				Msg("! dSortTriPrimitiveCollide: box_query returned out-of-range tri id %u (count %d)",
+					(u32)Res->id, static_tris_count);
+				FATAL("dSortTriPrimitiveCollide: box_query out-of-range tri id");
+			}
 			data->cashed_tries.push_back(Res->id);
 		}
 #ifdef DEBUG
@@ -147,6 +166,7 @@ IC int dcTriListCollider::dSortTriPrimitiveCollide (
 	Triangle b_neg_tri;//=&(data->b_neg_tri);
 	bool	neg_tri_contains_point = true;
 	if(*pushing_neg){
+		dbg_check_tri(data->neg_tri, u32(-1), "data->neg_tri (pushing_neg path)");
 		CalculateTri(data->neg_tri,p,neg_tri,V_array);
 		const dReal* neg_vertices[3]={cast_fp(V_array[neg_tri.T->verts[0]]),cast_fp(V_array[neg_tri.T->verts[1]]),cast_fp(V_array[neg_tri.T->verts[2]])};
 		neg_tri_contains_point = TriContainPoint(neg_vertices[0],neg_vertices[1],neg_vertices[2],	neg_tri.norm,neg_tri.side0,
@@ -171,6 +191,7 @@ IC int dcTriListCollider::dSortTriPrimitiveCollide (
 	}
 
 	if(*pushing_b_neg){
+		dbg_check_tri(data->b_neg_tri, u32(-1), "data->b_neg_tri (pushing_b_neg path)");
 		CalculateTri(data->b_neg_tri,p,b_neg_tri,V_array);
 		if(b_neg_tri.dist<0.f)
 		{
@@ -201,6 +222,7 @@ IC int dcTriListCollider::dSortTriPrimitiveCollide (
 #endif
 		//if(ignored_tries[I-B])continue;
 		CDB::TRI* Tris = T_array + *I;
+		dbg_check_tri(Tris, *I, "cashed_tries loop");
 		const Point vertices[3]={Point((dReal*)&V_array[Tris->verts[0]]),Point((dReal*)&V_array[Tris->verts[1]]),Point((dReal*)&V_array[Tris->verts[2]])};
 		if(!aabb_tri_aabb(Point(p),Point((float*)&AABB),vertices))
 																continue;
@@ -342,8 +364,23 @@ IC int dcTriListCollider::dSortTriPrimitiveCollide (
 	if(intersect)
 	{
 	
-	if(neg_depth<dInfinity)
-	{
+	// Back-push blocks: only valid when the corresponding triangle was
+	// actually resolved this step. b_neg_tri/neg_tri default-construct with
+	// T==null, and a state where the depth gate passes without an assignment
+	// must skip the push instead of dereferencing null (observed as a
+	// spawn-time 0xC0000005 reading T->material).
+	if(neg_depth<dInfinity){
+		static bool warned_null_neg = false;
+		if (!neg_tri.T)
+		{
+			if (!warned_null_neg)
+			{
+				warned_null_neg = true;
+				Msg("! dSortTriPrimitiveCollide: skipping push-out, neg_tri unresolved (pushing_neg=%d intersect=%d)", (int)*pushing_neg, (int)intersect);
+			}
+		}
+		else
+		{
 		bool include = true;
 		if(no_last_pos)
 			for(i=pos_tries.begin();pos_tries.end() != i;++i)
@@ -385,6 +422,7 @@ IC int dcTriListCollider::dSortTriPrimitiveCollide (
 				ret = SetBackTrajectoryCnt(p,last_pos,neg_tri,o1,o2,CONTACT(contact, 0));
 		}
 
+		}
 	}
 
 
@@ -407,6 +445,16 @@ IC int dcTriListCollider::dSortTriPrimitiveCollide (
 	}
 	
 	if(b_neg_depth<dInfinity){
+		static bool warned_null_b_neg = false;
+		if (!b_neg_tri.T)
+		{
+			if (!warned_null_b_neg)
+			{
+				warned_null_b_neg = true;
+				Msg("! dSortTriPrimitiveCollide: skipping back-push, b_neg_tri unresolved (pushing_b_neg=%d b_count=%u)", (int)*pushing_b_neg, b_count);
+			}
+		}
+		else{
 
 		bool include = true;
 		if(no_last_pos)
@@ -421,8 +469,8 @@ IC int dcTriListCollider::dSortTriPrimitiveCollide (
 					}
 			};
 
-		if(include)	
-		{	
+		if(include)
+		{
 			VERIFY(b_neg_tri.T);
 			int bret = 0;
 			if(ret<flags-10)
@@ -438,6 +486,7 @@ IC int dcTriListCollider::dSortTriPrimitiveCollide (
 			*pushing_b_neg=!!bret;
 			if(*pushing_neg)ret+=bret;
 			else if(*pushing_b_neg)ret=bret;
+		}
 		}
 
 	}

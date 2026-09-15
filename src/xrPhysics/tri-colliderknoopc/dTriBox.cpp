@@ -21,9 +21,14 @@ int dcTriListCollider::dSortedTriBox (
 
   VERIFY (skip >= (int)sizeof(dContactGeom));
   VERIFY (dGeomGetClass(o1) == dBoxClass);
-  
 
-  
+  if (!T) // diagnostics for the spawn-time 0xC0000005 (null T->material read)
+  {
+      Msg("! dSortedTriBox: null TRI pointer (o1=%p o2=%p flags=%08x dist=%f)", (void*)o1, (void*)o2, flags, dist);
+      FATAL("dSortedTriBox: null triangle pointer");
+  }
+
+
   const dReal *R = dGeomGetRotation(o1);
   const dReal* p=dGeomGetPosition(o1);
   dVector3 hside;

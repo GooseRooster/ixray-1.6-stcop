@@ -22,6 +22,14 @@ static BOOL bException = FALSE;
 #	define USE_OWN_MINI_DUMP
 #endif // DEBUG
 
+#if defined(IXR_WINDOWS) && defined(USE_OWN_MINI_DUMP)
+void save_mini_dump			(_EXCEPTION_POINTERS *pExceptionInfo);
+// Writes a dump for a non-exception fatal (assert dialog "Cancel", do_exit):
+// captures the current thread context so the dump's exception stream still
+// points at the fatal site.
+static void save_fatal_mini_dump	();
+#endif
+
 
 static bool	error_after_dialog = false;
 
@@ -126,6 +134,9 @@ void xrDebug::do_exit	(const std::string &message)
 	}
 
 #ifdef IXR_WINDOWS
+#	if defined(IXR_WINDOWS) && defined(USE_OWN_MINI_DUMP)
+	save_fatal_mini_dump	();
+#	endif
 	TerminateProcess	(GetCurrentProcess(),1);
 #else
 	kill(getpid(), SIGKILL);
@@ -251,6 +262,9 @@ void xrDebug::show_dialog(const std::string& message, bool& ignore_always)
 		{
 			DEBUG_INVOKE;
 		}
+#if defined(IXR_WINDOWS) && defined(USE_OWN_MINI_DUMP)
+		save_fatal_mini_dump	();
+#endif
 		// TODO: Maybe not correct
 		exit(-1);
 	}
@@ -440,6 +454,24 @@ void save_mini_dump			(_EXCEPTION_POINTERS *pExceptionInfo)
 		xr_sprintf( szScratch, "Failed to create dump file '%s' (error %d)", szDumpPath, GetLastError() );
 		szResult = szScratch;
 	}
+
+	if (szResult && shared_str_initialized)
+		Msg("%s", szResult);
+}
+
+static void save_fatal_mini_dump	()
+{
+	__declspec(align(16)) CONTEXT ctx = {};
+	ctx.ContextFlags = CONTEXT_FULL;
+	RtlCaptureContext	(&ctx);
+
+	EXCEPTION_RECORD rec = {};
+	rec.ExceptionCode		= 0xE0000001; // app-forced fatal marker
+	rec.ExceptionFlags		= EXCEPTION_NONCONTINUABLE;
+	rec.ExceptionAddress	= (PVOID)ctx.Rip;
+
+	_EXCEPTION_POINTERS ep = { &rec, &ctx };
+	save_mini_dump			(&ep);
 }
 #endif // USE_OWN_MINI_DUMP
 
