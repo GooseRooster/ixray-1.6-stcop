@@ -74,7 +74,7 @@ public:
 	{
 		struct _D
 		{
-			Fmatrix						combine = {};
+			Fmatrix						combine;
 			s32							minX, maxX;
 			s32							minY, maxY;
 			BOOL						transluent;
@@ -82,22 +82,27 @@ public:
 
 		struct _P
 		{
-			Fmatrix						world = {};
-			Fmatrix						view = {};
-			Fmatrix						project = {};
-			Fmatrix						combine = {};
+			Fmatrix						world;
+			Fmatrix						view;
+			Fmatrix						project;
+			Fmatrix						combine;
 		}	P;
 
 		struct _S
 		{
-			Fmatrix						view = {};
-			Fmatrix						project = {};
-			Fmatrix						combine = {};
+			Fmatrix						view;
+			Fmatrix						project;
+			Fmatrix						combine;
 			u32							size;
 			u32							posX;
 			u32							posY;
 			BOOL						transluent;
 		}	S;
+
+		_xform()
+		{
+			ZeroMemory(this, sizeof(*this));
+		}
 
 	};
 

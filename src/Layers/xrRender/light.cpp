@@ -34,6 +34,7 @@ light::light()
 	for (int f=0; f<6; f++)decor_object[f] = nullptr;
 
 #if (RENDER==R_R2) || (RENDER==R_R4)
+	m_xform_frame	= 0;
 	ZeroMemory		(omnipart,sizeof(omnipart));
 	s_spot			= nullptr;
 	s_point			= nullptr;

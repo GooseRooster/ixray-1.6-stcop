@@ -18,9 +18,7 @@ XRCORE_API xrDebug Debug;
 static BOOL bException = FALSE;
 #define USE_OWN_ERROR_MESSAGE_WINDOW
 
-#ifndef DEBUG
 #	define USE_OWN_MINI_DUMP
-#endif // DEBUG
 
 #if defined(IXR_WINDOWS) && defined(USE_OWN_MINI_DUMP)
 void save_mini_dump			(_EXCEPTION_POINTERS *pExceptionInfo);
@@ -32,6 +30,10 @@ static void save_fatal_mini_dump	();
 
 
 static bool	error_after_dialog = false;
+
+#if defined(IXR_WINDOWS)
+namespace StackTrace { std::vector<std::string> BuildStackTrace(PCONTEXT threadCtx, u16 maxFramesCount); }
+#endif
 
 void xrDebug::gather_info		(const char *expression, const char *description, const char *argument0, const char *argument1, const char *file, int line, const char *function, LPSTR assertion_info, u32 const assertion_info_size)
 {
@@ -116,6 +118,25 @@ void xrDebug::gather_info		(const char *expression, const char *description, con
 
 			Msg("Frame %d: %s - %s:%d\n", frame_i, i->description().c_str(), i->source_file().c_str(), i->source_line());
 		}
+
+#ifdef IXR_WINDOWS
+		if (frame_i == 0)
+		{
+			__declspec(align(16)) CONTEXT fallbackCtx = {};
+			fallbackCtx.ContextFlags = CONTEXT_FULL;
+			RtlCaptureContext	(&fallbackCtx);
+
+			auto dbgStack = StackTrace::BuildStackTrace(&fallbackCtx, 128);
+			for (const auto& frameStr : dbgStack)
+			{
+				if (frameStr == "NULL")
+					continue;
+
+				Msg("%s\n", frameStr.c_str());
+				buffer	+= xr_sprintf(buffer, assertion_size - u32(buffer - buffer_base), "%s%s", frameStr.c_str(), endline);
+			}
+		}
+#endif
 #endif
 
 		if (shared_str_initialized)
@@ -189,6 +210,10 @@ void xrDebug::show_dialog(const std::string& message, bool& ignore_always)
 	{
 		return;
 	}
+
+#if defined(IXR_WINDOWS) && defined(DEBUG)
+	save_fatal_mini_dump	();
+#endif
 
 	if (handler)
 		handler();
@@ -265,8 +290,11 @@ void xrDebug::show_dialog(const std::string& message, bool& ignore_always)
 #if defined(IXR_WINDOWS) && defined(USE_OWN_MINI_DUMP)
 		save_fatal_mini_dump	();
 #endif
-		// TODO: Maybe not correct
+#ifdef IXR_WINDOWS
+		TerminateProcess	(GetCurrentProcess(),1);
+#else
 		exit(-1);
+#endif
 	}
 	if (get_on_dialog())
 		get_on_dialog()	(false);
@@ -392,6 +420,11 @@ typedef BOOL (WINAPI *MINIDUMPWRITEDUMP)(HANDLE hProcess, DWORD dwPid, HANDLE hF
 // TODO: windows specific stuff, Linux would require debugging tools and APIs like `libunwind`, `libbfd`, and `gdb`...
 void save_mini_dump			(_EXCEPTION_POINTERS *pExceptionInfo)
 {
+	static bool dump_attempted = false;
+	if (dump_attempted)
+		return;
+	dump_attempted = true;
+
 	const char* szResult = nullptr;
 	string_path	szDumpPath;
 	string_path	szScratch;
