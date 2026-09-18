@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Build the native Linux targets (tools + engine core libs).
+# Usage: ixray-build [extra cmake --build args...]
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+cmake --build "$NATIVE_BUILD_DIR" \
+    --target xrCore xrSound xrNetServer xrCompress "$@"

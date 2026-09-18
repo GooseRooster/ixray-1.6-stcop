@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Configure the native Linux build (run inside the default devshell).
+# Tools + engine core libs only — the playable engine needs the winCross shell.
+# Usage: ixray-configure [extra cmake args]
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+cmake -S "$REPO_ROOT" -B "$NATIVE_BUILD_DIR" -G Ninja \
+    -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF "$@"
+echo "==> configured $NATIVE_BUILD_DIR — build with ixray-build"

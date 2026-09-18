@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Configure a Windows cross-compile build dir (run inside the winCross shell).
+#
+# Usage: ixray-configure-win [--pdbs] [--dev] [--editors] [--profile] [extra cmake args]
+#
+#   (default)  build-win         game build (IXRAY_MP=ON, matches upstream game presets)
+#   --pdbs     + IXRAY_PDB=ON    link PDBs into Release artifacts
+#   --dev      + IXRAY_UTILS=ON  SDK utilities
+#   --editors  + IXRAY_EDITORS=ON  SDK editors (untested in cross builds — expect fixes)
+#   --profile  build-win-profile game + Optick profiler (IXRAY_PROFILER) + PDBs
+#
+# Extra args pass through to cmake (e.g. -DCMAKE_BUILD_TYPE=...).
+# Details: docs/devshell.md, docs/cross-compile.md
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+dir="$WIN_BUILD_DIR"
+flags=()
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --pdbs)     flags+=(-DIXRAY_PDB=ON) ;;
+        --dev)      flags+=(-DIXRAY_UTILS=ON) ;;
+        --editors)  flags+=(-DIXRAY_EDITORS=ON) ;;
+        --profile)  dir="$WIN_PROFILE_DIR"; flags+=(-DIXRAY_PROFILER=ON -DIXRAY_PDB=ON) ;;
+        --*)        fail "unknown option: $1" ;;
+        *)          break ;;
+    esac
+    shift
+done
+
+configure_win "$dir" ${flags[@]+"${flags[@]}"} "$@"
+echo "==> configured $dir — build with ixray-build-win"

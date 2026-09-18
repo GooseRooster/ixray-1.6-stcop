@@ -1,0 +1,4 @@
+{"pattern": "cmake/msvc.cmake", "reason": "cross-compile compat flags (clang-cl MSVC-parity semantics) — diverged from upstream", "added_via": "seed", "added_date": "2026-09-18"}
+{"pattern": "cmake/msvc-cross.cmake", "reason": "Linux->Windows cross toolchain file, fork-only", "added_via": "seed", "added_date": "2026-09-18"}
+{"pattern": "flake.nix", "reason": "fork-only Nix devshells", "added_via": "seed", "added_date": "2026-09-18"}
+{"pattern": ".clangd", "reason": "clang-cl compile-db suppressions, fork-only", "added_via": "seed", "added_date": "2026-09-18"}

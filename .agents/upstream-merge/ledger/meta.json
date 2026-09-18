@@ -1,0 +1,6 @@
+{
+  "upstream_remote": "upstream",
+  "upstream_branch": "default",
+  "last_synced_upstream_hash": "612b165c97d5e6a50ac0a6d1384ac8c95a63dda5",
+  "note": "Written by upstream-sync (mark-synced). last_synced_upstream_hash is the upstream/default tip that our default branch has fully absorbed (merge + skip reverts applied + parity gate green)."
+}

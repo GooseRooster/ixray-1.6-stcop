@@ -10,6 +10,16 @@ driven by CMake/Ninja. Everything lives in `flake.nix` (`winCross` devShell) and
 
 - **Full engine cross-builds**: 48-file `build-win/bin/Release/` parity with the upstream
   published game build (engine + MP layer + all runtime DLLs).
+- **Debug config cross-builds** (`ixray-build-win debug`): required fixing Debug-only code
+  MSVC never objected to (a `dllexport` forward-decl of xrCore's `ISpatial` via
+  `ENGINE_API`, a `shared_str` through varargs, missing `typename`s, one include casing).
+- **Utils cross-build** (`ixray-build-win dev`, `IXRAY_UTILS=ON`): all SDK utilities
+  compile after the usual sweep (PCH-arg casing, `template<>` on out-of-line members of
+  template instantiations, `DWORD`→`DWORD_PTR` in vendored fcgi/pthreads callback
+  signatures, `Windows.h` included inside a namespace, `ICF` on cross-TU functions,
+  glob/include casing). The **Editors** (`--editors`) remain untested in cross builds.
+- **Profiling build** (`ixray-build-win profile`): Release + Optick (`IXRAY_PROFILER`) +
+  PDBs in `build-win-profile/` — OptickCore links cleanly under lld-link.
 - **Engine boots under Wine**: `xrEngine.exe -dedicated` initializes xrCore, resolves
   `fsgame.ltx` when started from `bin/`, loads `system.ltx` from gamedata.
 - **clangd works**: raw `clangd` (not the nix wrapper) + per-file compile DB from
@@ -84,21 +94,33 @@ driven by CMake/Ninja. Everything lives in `flake.nix` (`winCross` devShell) and
 
 ## PDBs & crash symbolization
 
-All cross configs now emit PDBs next to the binaries: `cmake/msvc.cmake` links `/DEBUG`
-for Release (clang-cl builds only — upstream MSVC/CI binaries are untouched), and
-`/Zi` was already applied per-object for every config.
+PDBs for Release are **opt-in** via the `IXRAY_PDB` CMake option (clang-cl
+cross builds only — upstream MSVC/CI binaries are untouched). Objects are
+always compiled with `/Zi`; the option only adds `/DEBUG` at link time, so
+toggling it reconfigures + relinks but never recompiles. Debug config emits
+PDBs automatically (no option needed).
 
-- Grab them from `build-win/bin/Release/*.pdb` (must be copied together with the
-  *same build's* binaries — the PDB GUID only matches the DLLs it was linked with).
+- `ixray-build-win release-pdbs` — Release + PDBs in `build-win/bin/Release/`.
+- `ixray-build-win profile` — Release + Optick + PDBs in
+  `build-win-profile/bin/Release/` (separate dir: `IXRAY_PROFILER` changes
+  compile definitions, so a full rebuild set of its own).
+- Copy PDBs together with the **same build's** binaries — the PDB GUID only
+  matches the DLLs it was linked with. Never mix configs (Release =
+  `MASTER_GOLD`; Debug/RelWithDebInfo compile different code).
 - The runtime stack tracer (`src/xrCore/StackTrace/StackTrace.h`) prints each frame as
   `module at 0xABS (base 0xBASE, rva 0xRVA)`; if Wine's builtin dbghelp can't load the
   PDB under Proton (symbol line missing from the log), symbolize offline on Linux:
   `llvm-symbolizer --relative-address --obj=xrRender_R4.dll 0xRVA...` (verified working
   with the winCross LLVM 20 toolchain; alternative: `llvm-pdbutil dump -lines`).
-  Note `bin/Release` PDBs match Release (MASTER_GOLD) builds — Debug/RelWithDebInfo
-  PDBs must not be mixed in, those configs compile different code.
-- `IXRAY_CONFIG=RelWithDebInfo ixray-build-win` builds a different config with the
-  same helper (no `MASTER_GOLD`, so not a drop-in for Release crash debugging).
+
+## Profiling & benchmarking
+
+`ixray-build-win profile` (see [devshell.md](devshell.md#profiling--benchmarking)):
+Release + `IXRAY_PROFILER` (Optick via NuGet, `OptickCore.dll`) + PDBs.
+`PROF_FRAME` wraps the main thread, ~75 `GPU_EVENT` sites cover xrRender.
+Capture via the in-game ImGui **Debug → Optick Start/Stop Capture** menu
+(writes `ixray-optick-*.opt`, viewable in the Optick GUI). The Release PDBs
+also enable ETW/xperf-style sampling symbolization.
 
 ## MSVC-semantics flags for clang-cl
 
@@ -123,12 +145,13 @@ null receiver, fix it with a plain pointer check at the call site (see HudSound)
 |---|---|
 | Native Linux shell | `nix develop` — tools, `ixray-configure`/`ixray-build` |
 | Cross shell | `nix develop .#winCross` (or `use flake .#winCross` in `.envrc`) |
-| Helper scripts | `.devshell-helpers/` (PATH scripts, not aliases — direnv drops functions) |
-| Build dirs | `build/` (native), `build-win/` (game), `build-lsp/` (clangd DB, unity-free) |
+| Helper scripts | `scripts/devshell/` (checked in; on PATH in both shells; gitignored `.devshell-helpers/` wins for personal overrides) |
+| Build presets | `ixray-build-win [release\|release-pdbs\|debug\|dev\|profile]` — see [devshell.md](devshell.md) |
+| Build dirs | `build/` (native), `build-win/` (game), `build-win-profile/` (Optick), `build-lsp/` (clangd DB, unity-free) |
 | Game output | `build-win/bin/Release/` — copy contents over the game's `bin/` |
 | MSVC CRT/SDK cache | `~/.cache/ixray/msvc-sdk` (xwin), override with `XRAY_MSVC_SDK` |
 | Personal hook | `./.dev.local.sh` (gitignored), template `.dev.local.sh.example` |
-| clangd | root `compile_commands.json` symlink → `build-lsp/`; `.clangd` for suppressions |
+| clangd | root `compile_commands.json` symlink → `build-lsp/`; `.clangd` for suppressions; regenerate with `ixray-clangd-db` |
 
 ## Cross-compile pitfalls learned (for future changes)
 

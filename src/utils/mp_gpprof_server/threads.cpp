@@ -1,4 +1,8 @@
 #include <stdexcept>
+// NOTE: Windows.h must NOT be included inside namespace xray (it was, and MSVC
+// silently tolerated it) — clang-cl then resolves IID/_GUID to xray::_GUID and
+// the SDK's COM templates fail to compile.
+#include <Windows.h>
 #include "threads.h"
 
 namespace xray
@@ -51,8 +55,6 @@ unsigned int const get_clock_ms()
 {
 	return (clock() / CLOCKS_PER_SEC) * 1000;
 }
-
-#include <Windows.h>
 
 BOOLEAN nanosleep(LONGLONG ns) {
 	HANDLE timer;

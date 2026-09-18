@@ -85,3 +85,20 @@ util/wrap_config.json
 
 #clangd
 .cache/
+
+# Agentic skill framework (.agents/) — whitelist the tracked parts.
+# Machine-local: paths.local.json (private repo locations) never gets committed;
+# runtime state caches and __pycache__ stay ignored.
+!.agents/
+.agents/*
+!.agents/skills/
+!.agents/skills/*
+!.agents/skills/README.md
+!.agents/skills/upstream-sync/
+!.agents/skills/upstream-review/
+!.agents/skills/port-ow-feature/
+!.agents/skills/verify-parity/
+!.agents/upstream-merge/
+.agents/upstream-merge/paths.local.json
+.agents/upstream-merge/.cache/
+.agents/skills/*/scripts/__pycache__/

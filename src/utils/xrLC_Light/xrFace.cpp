@@ -56,6 +56,7 @@ void destroy_face( Face* &v, bool unregister )
 }
 
 
+template<>
 Tvertex<DataVertex>::Tvertex()
 {
  	R_ASSERT( inlc_global_data() );
@@ -83,6 +84,7 @@ Tvertex<DataVertex>::~Tvertex()
 	}
 }
 
+template<>
 Vertex*	Vertex::CreateCopy_NOADJ( vecVertex& vertises_storage ) const
 {
 	R_ASSERT( &vertises_storage == &inlc_global_data()->g_vertices() );
@@ -151,6 +153,7 @@ void Face::	Failure		()
 	inlc_global_data()->err_invalid().w_fvector3	(v[2]->P);
 }
 
+template<>
 void	Face::Verify		()
 {
 	// 1st :: area
@@ -177,6 +180,7 @@ void start_unwarp_recursion()
 	affected				= 1;
 }
 
+template<>
 void Face::OA_Unwarp( CDeflector *D, xr_vector<type_face*>& faces)
 { 
 	// range: no recursive method realisation

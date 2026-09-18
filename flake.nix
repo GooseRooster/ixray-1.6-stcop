@@ -1,56 +1,16 @@
 {
   # IX-Ray 1.6 STCOP — Nix devShells for the two supported build flows.
+  # Full rationale for every shell ingredient: docs/devshell.md.
+  # Cross-compile status/history: docs/cross-compile.md.
   #
-  # ── Intended flow ──────────────────────────────────────────────────────
-  # 1. `nix develop` (default shell, native Linux ELF):
-  #      Tools + engine core libraries (xrCore, xrSound, xrNetServer) and
-  #      the compressor. The playable engine itself is NOT buildable natively
-  #      yet — xrAbstractions and above include d3d9/d3d11 headers and
-  #      Windows APIs unconditionally, which needs real porting work.
-  # 2. `nix develop .#winCross` (Windows x64 cross-compile, MSVC ABI):
-  #      Builds the COMPLETE game (xrEngine.exe + xrGame + R1/R2/R4 render
-  #      DLLs) from Linux — the artifacts run on Windows and under
-  #      Wine/Proton. This is the intended path for playing/testing.
+  #   nix develop           native Linux — tools + engine core libs only
+  #                         (the playable engine is not natively buildable yet)
+  #   nix develop .#winCross  Windows x64 cross-compile (clang-cl + lld-link)
+  #                         — the intended path for playing/testing the game
   #
-  # ── Default (native Linux) shell ───────────────────────────────────────
-  # Provides:
-  #   * clang 18 + libc++ + lld — matches the Linux CI (build-utilities.yml)
-  #     and satisfies the -stdlib=libc++ / -fuse-ld=lld flags hardcoded in
-  #     cmake/clang.cmake. Use llvmPackages_18.libcxxStdenv, NOT the default
-  #     gcc stdenv: the build unconditionally passes -stdlib=libc++.
-  #   * clangd — via llvmPackages_18.clang-tools, version-matched to the
-  #     compiler. NOT nvim's mason: mason ships prebuilt native binaries that
-  #     cannot run on NixOS; nvim's environment profile
-  #     (files/nvim/lua/config/profile.lua) only ever expects this from PATH.
-  #   * codelldb — the vscode-lldb standalone adapter on PATH (same mason
-  #     story; nvim's C/C++ DAP locates it via PATH).
-  #   * cmake + ninja + neocmakelsp — the cmake nvim feature's LSP.
-  #   * nuget — the CLI, so cmake/linux/nuget.cmake's find_program() picks it
-  #     up instead of downloading nuget.exe (which would need mono binfmt).
-  #     `nuget restore` fetches the prebuilt linux-x64 runtime .so packages
-  #     (LuaJIT, GameNetworkingSockets, mimalloc, ...) from the ImeSense feed.
-  #   * All system libraries the build searches for (cmake/linux/packages.cmake
-  #     and cmake/modules/Find*.cmake): TBB, lzo2, ogg/opus/speexdsp/openal,
-  #     plus the full SDL3 build dependency set. Listed as buildInputs so the
-  #     stdenv propagates them into CMAKE_SYSTEM_PREFIX_PATH — that is how
-  #     the hardcoded `PATHS /usr/include` fallbacks in packages.cmake resolve
-  #     to the Nix store without any CMake patches.
-  #   * ./.dev.local.sh sourced on shell entry if present — the per-developer
-  #     personalization hook (see .dev.local.sh.example).
-  #
-  # x86_64-linux only: the NuGet runtime packages are linux-x64 prebuilts.
-  #
-  # Entry points:
-  #   * direnv users:  `direnv allow`   (auto-activates via .envrc)
-  #   * everyone else: `nix develop`
-  #
-  # Native build (tools + engine core libs only — see "Intended flow" above):
-  #   cmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF
-  #   cmake --build build --target xrCore xrSound xrNetServer xrCompress
-  #
-  # Note: the first configure needs network (NuGet restore + FetchContent for
-  # SDL3 / yaml-cpp / nvtt / openal-soft). direnv/nix develop don't sandbox,
-  # so this works out of the box.
+  # Build helpers (ixray-configure*, ixray-build*, ixray-clangd-db) are
+  # checked-in scripts in scripts/devshell/, put on PATH by both shellHooks.
+  # Both x86_64-linux only (NuGet runtime packages are linux-x64 prebuilts).
   description = "IX-Ray 1.6 STCOP dev shells";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -67,22 +27,19 @@
         in
         {
           default = pkgs.mkShell.override { stdenv = llvm.libcxxStdenv; } {
-            # Intentionally nvim-relevant tooling + build tools in `packages`;
-            # libraries in `buildInputs` (see header comment on path
-            # propagation).
+            # Tools in `packages`, libraries in `buildInputs` (the stdenv
+            # propagates buildInputs into CMAKE_SYSTEM_PREFIX_PATH — that is
+            # how the hardcoded PATHS in cmake/linux/packages.cmake resolve
+            # to the Nix store; see docs/devshell.md).
             packages = with pkgs; [
-              # Toolchain — libcxxStdenv provides clang 18 / libc++
               llvm.lld
-              # nvim environment-sourced tools (clangd, DAP, cmake LSP)
-              llvm.clang-tools
-              vscode-extensions.vadimcn.vscode-lldb.adapter
+              llvm.clang-tools # clangd, version-matched to the compiler
+              vscode-extensions.vadimcn.vscode-lldb.adapter # codelldb (nvim DAP)
               neocmakelsp
-              # Build
               cmake
               ninja
               git
               pkg-config
-              # NuGet CLI for cmake/linux/nuget.cmake
               nuget
             ];
 
@@ -96,9 +53,8 @@
               freetype
               libtheora
 
-              # Audio. Deliberately NO openal-soft here: cmake/modules/
-              # FindOpenalSoft.cmake expects to FetchContent openal-soft on
-              # Linux (its target is named `OpenAL`); a system openal would
+              # Audio. No openal-soft here on purpose: FindOpenalSoft.cmake
+              # FetchContents openal-soft on Linux; a system copy would
               # satisfy find_package(OpenAL) and break the xrSound link.
               libogg
               libvorbis
@@ -141,107 +97,61 @@
             ];
 
             shellHook = ''
-              # ── Personal hook. Gitignored; teammates without one see nothing.
-              #    Create .dev.local.sh to opt in (template: .dev.local.sh.example).
+              # Personal hook (gitignored; template: .dev.local.sh.example).
               if [ -f ./.dev.local.sh ]; then
                 # shellcheck source=/dev/null
                 . ./.dev.local.sh
               fi
 
-              # FetchContent subprojects (yaml-cpp 0.8.0, nvtt) declare
-              # cmake_minimum_required(<3.5), which CMake >= 4 rejects.
-              # CMake reads this env var without any repo CMake changes.
+              # yaml-cpp 0.8.0 / nvtt declare ancient cmake_minimum_required;
+              # CMake >= 4 rejects them without this.
               export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
-              # ── Project helper commands, as PATH scripts. direnv/nix
-              #    develop can only carry exported env vars across shell
-              #    boundaries, NOT aliases/functions (and the hook runs in
-              #    bash regardless of the user's shell) — so zsh/fish users
-              #    would never see them. Executables on PATH work everywhere.
-              #    Project-local dir; gitignored; personalize via PATH in
-              #    .dev.local.sh if you want your own versions first.
-              helpers=".devshell-helpers"
-              mkdir -p "$helpers"
-              printf '#!/usr/bin/env bash\ncmake -B build -G Ninja -DIXRAY_USE_R1=OFF -DIXRAY_USE_R2=OFF "$@"\n' > "$helpers/ixray-configure"
-              printf '#!/usr/bin/env bash\ncmake --build build --target xrCore xrSound xrNetServer xrCompress "$@"\n' > "$helpers/ixray-build"
-              chmod +x "$helpers"/ixray-*
-              export PATH="$PWD/$helpers:$PATH"
+              # Project helpers (checked in). A gitignored .devshell-helpers/
+              # dir, if present, wins on PATH for personal overrides.
+              export PATH="$PWD/.devshell-helpers:$PWD/scripts/devshell:$PATH"
 
-              # Runtime loader path for libs the build links against but the
-              # nix clang wrapper doesn't embed RPATHs for (dev-shell builds
-              # aren't patchelf'd like nixpkgs derivations).
+              # Runtime loader path for libs the nix clang wrapper doesn't
+              # embed RPATHs for.
               export LD_LIBRARY_PATH="${llvm.libcxx}/lib:${pkgs.tbb}/lib:${pkgs.lzo}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
               echo "IX-Ray dev shell (native Linux — tools + engine core libs; the playable engine needs the winCross shell):"
               echo "  clang $(clang --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'), cmake $(cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-              echo "  ixray-configure && ixray-build   (PATH scripts in .devshell-helpers/)"
+              echo "  ixray-configure && ixray-build"
             '';
           };
 
           # ── Windows x64 cross-compile shell (MSVC ABI) — the intended flow
-          # for building the playable game from Linux:
-          # clang-cl + lld-link + llvm-rc, with the MSVC CRT and Windows SDK
-          # provisioned by `xwin` on first entry (cached in
-          # ~/.cache/ixray/msvc-sdk, override with XRAY_MSVC_SDK).
-          #
-          #   cmake -B build-win -G "Ninja Multi-Config" \
-          #         -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake
-          #   cmake --build build-win --config Release --target xrEngine
-          #
-          # Output dir: build-win/bin/Release/ — xrEngine.exe + xrGame.dll +
-          # R1/R2/R4 render DLLs + all third-party DLLs (complete runtime).
-          # clangd: compile_commands.json from this build is unity-chunked
-          # (xrGame etc. build via UnityBuild), so individual sources have
-          # no entries and clangd falls back to wrong random commands →
-          # false-error storms. `ixray-clangd-db` configures a unity-FREE
-          # build dir (configure only, never built) purely to emit per-file
-          # compile commands; the root compile_commands.json symlink points
-          # at it. Regenerate it after CMake changes.
-          # clangd also benefits: compile_commands.json from this build
-          # carries the clang-cl driver flags, so IntelliSense sees the real
-          # Windows SDK/STL headers.
+          # for building the playable game from Linux. clang-cl + lld-link +
+          # llvm-rc, MSVC CRT/Windows SDK provisioned by xwin into
+          # ~/.cache/ixray/msvc-sdk (override with XRAY_MSVC_SDK).
           winCross = let
-            # LLVM >= 19 is required by the MSVC STL that ships in current
-            # VC CRT headers (STL1000: "expected Clang 19.0.0 or newer").
+            # LLVM >= 19 required by current MSVC STL headers (STL1000).
             llvmCross = pkgs.llvmPackages_20;
-            # nixpkgs splits clang's builtin headers into the `lib` output;
-            # the raw clang-cl binary looks for them next to itself and
-            # doesn't find them, so wrap it with an explicit -resource-dir.
-            # Without this, MSVC's intrinsic headers from the SDK shadow
-            # clang's and every _mm_* intrinsic fails to inline.
-            clangCl = pkgs.runCommand "clang-cl-msvc" { nativeBuildInputs = [ pkgs.makeWrapper ]; } ''
+            # Wrap clang-cl/clangd with an explicit -resource-dir: nixpkgs
+            # splits clang's builtin headers into the `lib` output, and the
+            # wrapped clangd would inject host GCC headers into MSVC-targeted
+            # parses. See docs/devshell.md.
+            wrapRawClang = name: bin: pkgs.runCommand "${name}-msvc" { nativeBuildInputs = [ pkgs.makeWrapper ]; } ''
               mkdir -p $out/bin
-              makeWrapper ${llvmCross.clang-unwrapped}/bin/clang-cl $out/bin/clang-cl \
+              makeWrapper ${llvmCross.clang-unwrapped}/bin/${bin} $out/bin/${bin} \
                 --add-flags "-resource-dir ${llvmCross.clang-unwrapped.lib}/lib/clang/${nixpkgs.lib.versions.major llvmCross.clang-unwrapped.version}"
             '';
-            # Same trick for clangd: the nixpkgs clang wrapper injects the
-            # host toolchain (GCC libstdc++, glibc headers) into every parse,
-            # which pollutes the MSVC-targeted compile_commands.json from
-            # build-win/ with linux headers and buries IntelliSense in
-            # errors. Raw clangd + explicit resource-dir stays clean.
-            clangdRaw = pkgs.runCommand "clangd-msvc" { nativeBuildInputs = [ pkgs.makeWrapper ]; } ''
-              mkdir -p $out/bin
-              makeWrapper ${llvmCross.clang-unwrapped}/bin/clangd $out/bin/clangd \
-                --add-flags "-resource-dir ${llvmCross.clang-unwrapped.lib}/lib/clang/${nixpkgs.lib.versions.major llvmCross.clang-unwrapped.version}"
-            '';
+            clangCl = wrapRawClang "clang-cl" "clang-cl";
+            clangdRaw = wrapRawClang "clangd" "clangd";
           in
             pkgs.mkShell {
-            # libllvm (not `llvm`: the wrapped multi-output llvm package
-            # breaks nix-shell dependency validation) carries llvm-rc,
-            # libllvm (not `llvm`: the wrapped multi-output llvm package
-            # breaks nix-shell dependency validation) carries llvm-rc,
-            # llvm-lib, llvm-mt; lld carries lld-link; clangdRaw carries
-            # clangd (version-matched to the cross compiler — see the
-            # clangdRaw comment for why the wrapped clangd cannot be used
-            # with the clang-cl compile_commands.json).
+            # libllvm (not the wrapped multi-output `llvm` package — it breaks
+            # nix-shell dependency validation) carries llvm-rc, llvm-lib,
+            # llvm-mt; lld carries lld-link.
             packages = (with llvmCross; [
-              lld # lld-link
-              libllvm # llvm-rc, llvm-lib, llvm-mt
+              lld
+              libllvm
             ]) ++ (with pkgs; [
-              clangCl # clang-cl (resource-dir-wrapped)
-              clangdRaw # clangd (raw, resource-dir-wrapped)
+              clangCl
+              clangdRaw
               vscode-extensions.vadimcn.vscode-lldb.adapter # codelldb (nvim DAP)
-              neocmakelsp # cmake nvim feature's LSP
+              neocmakelsp
               cmake
               ninja
               git
@@ -251,7 +161,7 @@
             ]);
 
             shellHook = ''
-              # ── Personal hook. Gitignored; teammates without one see nothing.
+              # Personal hook (gitignored; template: .dev.local.sh.example).
               if [ -f ./.dev.local.sh ]; then
                 # shellcheck source=/dev/null
                 . ./.dev.local.sh
@@ -271,27 +181,16 @@
               export INCLUDE="$XRAY_MSVC_SDK/crt/include;$XRAY_MSVC_SDK/sdk/include/ucrt;$XRAY_MSVC_SDK/sdk/include/um;$XRAY_MSVC_SDK/sdk/include/shared;$XRAY_MSVC_SDK/sdk/include/winrt;$XRAY_MSVC_SDK/sdk/include/cppwinrt"
               export LIB="$XRAY_MSVC_SDK/crt/lib/x86_64;$XRAY_MSVC_SDK/sdk/lib/um/x86_64;$XRAY_MSVC_SDK/sdk/lib/ucrt/x86_64"
 
-              # clang-cl's default linker is link.exe; route it to lld-link
-              # for manual compile+link invocations (CMake uses CMAKE_LINKER
-              # = lld-link from the toolchain file and doesn't need this).
+              # Route clang-cl's default link.exe to lld-link for manual
+              # invocations (CMake uses CMAKE_LINKER from the toolchain file).
               binshim="$HOME/.cache/ixray/bin"
               mkdir -p "$binshim"
               command -v lld-link >/dev/null && ln -sf "$(command -v lld-link)" "$binshim/link.exe"
-              export PATH="$binshim:$PATH"
-
-              # ── Project helper commands (see the native shell's comment —
-              #    PATH scripts instead of aliases, works in any shell).
-              helpers=".devshell-helpers"
-              mkdir -p "$helpers"
-              printf '#!/usr/bin/env bash\ncmake -B build-win -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake -DIXRAY_MP=ON "$@"\n' > "$helpers/ixray-configure-win"
-              printf '#!/usr/bin/env bash\ncmake --build build-win --config Release "$@"\n' > "$helpers/ixray-build-win"
-              printf '#!/usr/bin/env bash\ncmake -B build-lsp -G "Ninja Multi-Config" -DCMAKE_TOOLCHAIN_FILE=cmake/msvc-cross.cmake -DIXRAY_UNITYBUILD=OFF "$@"\n' > "$helpers/ixray-clangd-db"
-              chmod +x "$helpers"/ixray-*
-              export PATH="$PWD/$helpers:$PATH"
+              export PATH="$binshim:$PWD/.devshell-helpers:$PWD/scripts/devshell:$PATH"
 
               echo "IX-Ray winCross shell (Windows x64 MSVC cross-compile — the playable game):"
               echo "  $(clang-cl --version | head -n1), lld-link $(lld-link --version | head -n1), SDK: $XRAY_MSVC_SDK"
-              echo "  ixray-configure-win && ixray-build-win"
+              echo "  ixray-configure-win && ixray-build-win [release|release-pdbs|debug|dev|profile]"
               echo "  ixray-clangd-db   # regenerate per-file compile_commands for clangd"
               echo "  → build-win/bin/Release/  (copy contents over the game's bin/ for Proton)"
             '';

@@ -1550,7 +1550,7 @@ static int CALLBACK isAddrOKCallback(LPWSABUF  lpCallerId,
                                      LPWSABUF  dc3,
                                      LPWSABUF  dc4,
                                      GROUP     *dc5,
-                                     DWORD     data)
+                                     DWORD_PTR data)
 {
     struct sockaddr_in *sockaddr = (struct sockaddr_in *) lpCallerId->buf;
 
@@ -1680,11 +1680,11 @@ static int acceptSocket(const char *webServerAddrs)
 
         closesocket(hSock);
 #else
-        hSock = WSAAccept((unsigned int) hListen,                    
-                          &sockaddr,  
-                          &sockaddrLen,               
-                          isAddrOKCallback,  
-                          (DWORD) webServerAddrs);
+        hSock = WSAAccept((unsigned int) hListen,
+                          &sockaddr,
+                          &sockaddrLen,
+                          isAddrOKCallback,
+                          (DWORD_PTR) webServerAddrs);
 
         if (hSock != INVALID_SOCKET)
         {

@@ -14,11 +14,19 @@ migrate the **Old World level pack and game mechanics** onto this engine.
 ## Build targets — read this first
 
 - **Windows x64 is the only playable target.** Two supported build flows (see
-  `docs/cross-compile.md` for full status/history):
+  `docs/cross-compile.md` + `docs/devshell.md` for full status/history/rationale):
   1. **Cross-compile from Linux** (primary here): `nix develop .#winCross`, then
-     `ixray-configure-win && ixray-build-win`. Output: `build-win/bin/Release/` — copy
-     contents over the game's `bin/`. Build config is `Release` (= `MASTER_GOLD` defined,
-     matching upstream's published player builds).
+     `ixray-configure-win && ixray-build-win [preset]`. Build presets (each asserts its
+     CMake option state, then builds):
+
+     | Preset | Config | Extras | Output |
+     |---|---|---|---|
+     | `release` (default) | Release (`MASTER_GOLD`, MP parity) | — | `build-win/bin/Release/` |
+     | `release-pdbs` | Release | `IXRAY_PDB=ON` | same, + PDBs (same-link only!) |
+     | `debug` | Debug (`DEBUG`/`DEBUG_DRAW`) | PDBs automatic | `build-win/bin/Debug/` |
+     | `dev` | Debug | `IXRAY_UTILS=ON` (`--editors` adds the SDK editors — untested in cross) | `build-win/bin/Debug/` |
+     | `profile` | Release | `IXRAY_PROFILER` (Optick) + PDBs, own dir | `build-win-profile/bin/Release/` — deploy the WHOLE dir incl. `OptickCore.dll`; capture via in-game ImGui Debug menu |
+
   2. **MSVC on Windows/CI** (upstream's path): CI workflows build **RelWithDebInfo**;
      upstream packs releases manually with `util/pack-builds.bat` from the *Server* preset
      (`IXRAY_MP=ON`).
@@ -43,7 +51,8 @@ cmake/                msvc.cmake (MSVC/clang-cl flags), clang.cmake (native Linu
                       msvc-cross.cmake (Linux→Windows toolchain), nuget.cmake per-OS,
                       modules/Find* (SDL3, LuaBind, Ogg, Opus, SpeexDSP, OpenalSoft)
 flake.nix             devShells: `default` (native Linux), `winCross` (Windows cross);
-                      helper PATH scripts in `.devshell-helpers/`; .dev.local.sh personal hook
+                      .dev.local.sh personal hook; detailed rationale in docs/devshell.md
+scripts/devshell/     checked-in ixray-* helper scripts (put on PATH by the shells)
 src/
   xrCore/             core library: FS/LocatorAPI, memory (xrMemory), logging, threading,
                       Platform/{Windows,Linux,BSD} abstraction
@@ -62,16 +71,21 @@ gamedata/             in-repo gamedata subset (anims, configs, scripts, shaders.
                       active Old World gamedata lives in the oldworld repo `_GAME/`
 sdk/                  bundled headers (incl. nvapi, lua) + libraries (meshoptimizer)
 util/                 build/pack .bat scripts (local dev machine tooling, 7-Zip based)
-docs/                 engine docs site; `docs/cross-compile.md` = cross-build status
+docs/                 engine docs site; `docs/cross-compile.md` = cross-build status,
+                      `docs/devshell.md` = shells/helpers/presets rationale
+.agents/              agent skill framework: `upstream-sync`, `upstream-review`,
+                      `port-ow-feature`, `verify-parity` + shared state in
+                      `.agents/upstream-merge/` (see `.agents/skills/README.md`)
 ```
 
 ## Environment / workflow
 
 - Direnv (`use flake`) activates the native shell; `use flake .#winCross` for cross work.
-- Helpers are **PATH scripts** (`.devshell-helpers/`), not aliases — direnv/nix-direnv only
-  carries exported env vars, aliases/functions die with the hook's bash.
-- Helper scripts: `ixray-configure-win`, `ixray-build-win` (`IXRAY_MP=ON`, matches upstream
-  game builds), `ixray-clangd-db`, `ixray-configure`, `ixray-build`.
+- Helpers are **checked-in PATH scripts** (`scripts/devshell/`) — direnv/nix-direnv only
+  carries exported env vars, aliases/functions die with the hook's bash. A gitignored
+  `.devshell-helpers/` dir, if present, wins on PATH for personal overrides.
+- Helper scripts: `ixray-configure-win` (`--pdbs/--dev/--editors/--profile`),
+  `ixray-build-win` (presets above), `ixray-clangd-db`, `ixray-configure`, `ixray-build`.
 - First configure needs network (NuGet restore + FetchContent: SDL3, yaml-cpp, nvtt,
   openal-soft). xwin provisions the MSVC SDK into `~/.cache/ixray/msvc-sdk`.
 - `cmake -B build-lsp ... -DIXRAY_UNITYBUILD=OFF` exists purely for clangd (per-file
@@ -90,14 +104,25 @@ docs/                 engine docs site; `docs/cross-compile.md` = cross-build st
   xrCore init — see `xrMemory.cpp`).
 - CMake's `CMAKE_MSVC_RUNTIME_LIBRARY` owns CRT selectors — never hand-pin `/MD`/`/MDd`
   alongside it.
-- PDBs: Debug build emits `*.pdb` (use for winedbg symbolization); Release currently doesn't.
+- PDBs: Debug/RelWithDebInfo emit `*.pdb` automatically; Release PDBs are opt-in
+  (`IXRAY_PDB=ON` via `ixray-build-win release-pdbs`/`profile` — relink-only toggle,
+  objects always carry `/Zi`). Never mix PDBs from a different link (GUID mismatch).
 - Wine is not a Windows oracle: builtin dbghelp's `MiniDumpWriteDump` and similar can fail
   under Wine; validate user-visible behavior in Proton/Windows before blaming the build.
 
 ## Upstream-relation notes
 
-- Upstream repo: `github.com/ixray-team/ixray-1.6-stcop` (this repo is a fork, branch
-  `default`). Upstream docs: https://ixray-team.github.io/ixray-1.6-stcop/en/
+- Upstream repo: `github.com/ixray-team/ixray-1.6-stcop` — configured as the `upstream`
+  git remote (this repo is a fork, branch `default`). Upstream docs:
+  https://ixray-team.github.io/ixray-1.6-stcop/en/
+- **Upstream sync runs through the `.agents/skills/` framework** (merge + skip-ledger
+  model): `upstream-sync` merges `upstream/default` wholesale, re-applies ledger-recorded
+  skips, and exits through the `verify-parity` gate (cross build + clangd DB + hazard
+  scan). See `.agents/skills/README.md` before syncing or porting.
+- The private Old World repos' on-disk locations live in the **gitignored**
+  `.agents/upstream-merge/paths.local.json` (schema: `paths.local.json.example`); nothing
+  tracked may contain those absolute paths. `port-ow-feature` resolves them via
+  `port_helpers.py`.
 - Upstream releases are packed manually (Release config, `MASTER_GOLD` defined); the public
   CI only uploads raw artifacts. Don't assume CI artifacts equal published builds.
 - Several Linux/clang fixes here (case normalization, resource encodings, `init_seg`

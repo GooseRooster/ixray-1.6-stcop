@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# Build the Windows cross-compile game with a named preset.
+# Each preset asserts its CMake option state first (reconfigure only if the
+# cache differs), then runs the build. Extra args pass through to
+# `cmake --build` (e.g. --target xrEngine); the preset owns --config.
+#
+# Usage: ixray-build-win [preset] [--editors] [extra cmake --build args...]
+#
+#   release      (default)  build-win  Release — the shippable game build
+#   release-pdbs            build-win  Release + IXRAY_PDB=ON — PDBs for
+#                                      crash symbolization (deploy together
+#                                      with the same build's binaries)
+#   debug                  build-win  Debug — DEBUG/DEBUG_DRAW defined,
+#                                      PDBs emitted automatically
+#   dev                    build-win  Debug + IXRAY_UTILS=ON (SDK utilities;
+#                                      first cross build may need fixes)
+#                          [--editors also enables the SDK editors]
+#   profile                build-win-profile Release — Optick + PDBs for
+#                          performance work (auto-configures the dir if
+#                          missing; deploy the whole bin/Release incl.
+#                          OptickCore.dll; capture via the in-game ImGui
+#                          Debug menu)
+#
+# Details: docs/devshell.md, docs/cross-compile.md
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+preset=""
+editors=0
+passthrough=()
+for arg in "$@"; do
+    if [ -z "$preset" ] && case "$arg" in -*) false;; *) true;; esac; then
+        # First positional arg is the preset.
+        case "$arg" in
+            release|release-pdbs|debug|dev|profile) preset="$arg" ;;
+            *) fail "unknown preset: $arg — presets: release, release-pdbs, debug, dev, profile" ;;
+        esac
+        continue
+    fi
+    case "$arg" in
+        --editors)  editors=1 ;;
+        --config|-c) fail "the preset owns --config — pass other cmake --build args instead" ;;
+        *)          passthrough+=("$arg") ;;
+    esac
+done
+preset="${preset:-release}"
+
+case "$preset" in
+    release)
+        require_configured "$WIN_BUILD_DIR"
+        ensure_cache_var "$WIN_BUILD_DIR" IXRAY_PDB OFF
+        ensure_cache_var "$WIN_BUILD_DIR" IXRAY_UTILS OFF
+        ensure_cache_var "$WIN_BUILD_DIR" IXRAY_EDITORS OFF
+        build_dir "$WIN_BUILD_DIR" Release ${passthrough[@]+"${passthrough[@]}"}
+        # Stale PDBs from a previous release-pdbs/profile link would sit here
+        # with GUIDs that no longer match the relinked binaries — remove them.
+        rm -f "$WIN_BUILD_DIR/bin/Release/"*.pdb
+        echo "==> $WIN_BUILD_DIR/bin/Release/ — copy contents over the game's bin/"
+        ;;
+    release-pdbs)
+        require_configured "$WIN_BUILD_DIR"
+        ensure_cache_var "$WIN_BUILD_DIR" IXRAY_PDB ON
+        ensure_cache_var "$WIN_BUILD_DIR" IXRAY_UTILS OFF
+        ensure_cache_var "$WIN_BUILD_DIR" IXRAY_EDITORS OFF
+        build_dir "$WIN_BUILD_DIR" Release ${passthrough[@]+"${passthrough[@]}"}
+        echo "==> $WIN_BUILD_DIR/bin/Release/ — copy *.pdb together with the SAME build's binaries (PDB GUIDs only match their own link)"
+        ;;
+    debug)
+        require_configured "$WIN_BUILD_DIR"
+        ensure_cache_var "$WIN_BUILD_DIR" IXRAY_UTILS OFF
+        ensure_cache_var "$WIN_BUILD_DIR" IXRAY_EDITORS OFF
+        build_dir "$WIN_BUILD_DIR" Debug ${passthrough[@]+"${passthrough[@]}"}
+        echo "==> $WIN_BUILD_DIR/bin/Debug/ — DEBUG/DEBUG_DRAW build with PDBs"
+        ;;
+    dev)
+        require_configured "$WIN_BUILD_DIR"
+        ensure_cache_var "$WIN_BUILD_DIR" IXRAY_UTILS ON
+        if [ "$editors" -eq 1 ]; then
+            ensure_cache_var "$WIN_BUILD_DIR" IXRAY_EDITORS ON
+        else
+            ensure_cache_var "$WIN_BUILD_DIR" IXRAY_EDITORS OFF
+        fi
+        build_dir "$WIN_BUILD_DIR" Debug ${passthrough[@]+"${passthrough[@]}"}
+        echo "==> $WIN_BUILD_DIR/bin/Debug/ — dev build (utils$([ "$editors" -eq 1 ] && echo ' + editors')) with PDBs"
+        ;;
+    profile)
+        if [ ! -f "$WIN_PROFILE_DIR/CMakeCache.txt" ]; then
+            echo "==> configuring $WIN_PROFILE_DIR (Optick + PDBs, one-off)"
+            configure_win "$WIN_PROFILE_DIR" -DIXRAY_PROFILER=ON -DIXRAY_PDB=ON
+        fi
+        ensure_cache_var "$WIN_PROFILE_DIR" IXRAY_PROFILER ON
+        ensure_cache_var "$WIN_PROFILE_DIR" IXRAY_PDB ON
+        build_dir "$WIN_PROFILE_DIR" Release ${passthrough[@]+"${passthrough[@]}"}
+        echo "==> $WIN_PROFILE_DIR/bin/Release/ — deploy the WHOLE dir over the game's bin/ (includes OptickCore.dll)"
+        echo "    capture: in-game ImGui Debug menu → 'Optick Start/Stop Capture' (writes ixray-optick-*.opt)"
+        ;;
+    *)
+        fail "unknown preset: $preset (see docs/devshell.md)"
+        ;;
+esac

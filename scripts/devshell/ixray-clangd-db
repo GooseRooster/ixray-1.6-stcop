@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Regenerate the per-file clangd compile database (run inside the winCross
+# shell after CMake changes).
+#
+# build-win's compile_commands.json is unity-chunked (xrGame builds via
+# UnityBuild), so individual sources have no entries and clangd falls back to
+# wrong commands → false-error storms. This configures a unity-FREE build dir
+# (configure only, never built) purely to emit per-file compile commands; the
+# root compile_commands.json symlink points at it.
+#
+# Usage: ixray-clangd-db [extra cmake args]
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+cmake -S "$REPO_ROOT" -B build-lsp -G "Ninja Multi-Config" \
+    -DCMAKE_TOOLCHAIN_FILE="$REPO_ROOT/cmake/msvc-cross.cmake" \
+    -DIXRAY_UNITYBUILD=OFF "$@"
+
+ln -sfn build-lsp/compile_commands.json "$REPO_ROOT/compile_commands.json"
+echo "==> build-lsp/compile_commands.json regenerated; root symlink refreshed"

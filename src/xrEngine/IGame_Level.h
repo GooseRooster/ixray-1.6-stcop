@@ -12,7 +12,10 @@
 class ENGINE_API CCameraManager;
 class ENGINE_API CCursor;
 class ENGINE_API CCustomHUD;
-class ENGINE_API ISpatial;
+// ISpatial belongs to xrCore — with ENGINE_BUILD defined, ENGINE_API is
+// dllexport and would re-export xrCore's class from every engine TU
+// (duplicate inline-member symbols vs xrCore.lib under clang-cl/lld-link).
+class XRCORE_API ISpatial;
 namespace Feel { class ENGINE_API Sound; }
 
 class ENGINE_API CServerInfo

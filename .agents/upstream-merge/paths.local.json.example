@@ -1,0 +1,6 @@
+{
+  "//": "Machine-local pointer to the private Old World repos. Copy to paths.local.json and adjust. NEVER commit a real paths.local.json — see .agents/skills/port-ow-feature/references/port-protocol.md for the privacy rules.",
+  "oldworld_repo": "/abs/path/to/oldworld",
+  "oldworld_game": "/abs/path/to/oldworld/_GAME",
+  "xray_monolith": "/abs/path/to/xray-monolith"
+}
