@@ -440,7 +440,7 @@ void dxRenderDeviceRender::End()
 		PROF_EVENT("Async Screenshot");
 		DoAsyncScreenshot();
 	}
-#ifdef DEBUG_DRAW
+#if defined(DEBUG_DRAW) || defined(IXRAY_PROFILER)
 	{
 		PROF_EVENT("ImGui EndRender");
 		CImGuiManager& MyImGui = CImGuiManager::Instance();
@@ -456,12 +456,14 @@ void dxRenderDeviceRender::End()
 		MyImGui.Render();
 		MyImGui.AfterRender();
 
+#ifdef DEBUG_DRAW
 		DebugRenderImpl.m_lines.resize(0);
-#if defined(USE_DX11) && defined(DEBUG_DRAW)
+#if defined(USE_DX11)
 		if (Engine.External.EditorStates[static_cast<std::uint8_t>(EditorUI::Shaders)])
 		{
 			GPUEvents_EndRendering();
 		}
+#endif
 #endif
 	}
 #else

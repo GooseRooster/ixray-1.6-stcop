@@ -25,6 +25,7 @@ void* SwapChainRTV = nullptr;
 extern ENGINE_API BOOL g_appLoaded;
 void DrawMainViewport()
 {
+#ifdef DEBUG_DRAW
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -50,6 +51,7 @@ void DrawMainViewport()
 	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
+#endif
 }
 
 void free_vid_mode_list()

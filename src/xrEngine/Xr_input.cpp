@@ -524,7 +524,7 @@ void CInput::OnFrame()
 	CScopeTimer Input(RDEVICE.Statistic->Input);
 
 	dwCurTime = RDEVICE.TimerAsync_MMT();
-#if !defined(MASTER_GOLD)
+#if !defined(MASTER_GOLD) || defined(IXRAY_PROFILER)
 	if (!Device.IsEditorMode() && (KBState[SDL_SCANCODE_F11] || CImGuiManager::Instance().IsCapturingInputs()))
 	{
 		NoInputUpdate();

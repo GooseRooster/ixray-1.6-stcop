@@ -193,7 +193,7 @@ void CImGuiManager::Render()
 {
 	ImGui::NewFrame();
 
-#ifdef DEBUG_DRAW
+#if defined(DEBUG_DRAW) || defined(IXRAY_PROFILER)
 	if (DrawUIRender)
 	{
 		for (const auto& [Id, CommandData] : RenderFrameData)
@@ -211,10 +211,10 @@ void CImGuiManager::Render()
 	}
 	else 
 	{
-#endif
 		RenderFrameData[MainViewportSlot].Function();
-#ifdef DEBUG_DRAW
 	}
+#else
+	RenderFrameData[MainViewportSlot].Function();
 #endif
 
 	ImGui::Render();
