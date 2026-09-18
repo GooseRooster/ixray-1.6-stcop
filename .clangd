@@ -1,8 +1,12 @@
 # clangd configuration
+#
+# /FI must NOT be removed: ixray-clangd-db injects /FI <targetdir>/stdafx.h
+# into build-lsp/compile_commands.json so headers parsed standalone get the
+# PCH-equivalent context (the real build force-feeds stdafx via cmake_pch.hxx).
+# /Yu, /Fp, /Yc stay stripped — build-lsp is configure-only and the referenced
+# .pch never exists.
 CompileFlags:
   Remove:
-    - /FI*
-    - -FI*
     - /Yu*
     - /Fp*
     - /Yc*

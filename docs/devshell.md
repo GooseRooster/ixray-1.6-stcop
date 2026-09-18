@@ -68,6 +68,20 @@ after CMake changes. The clang-cl driver flags in it give clangd the real
 Windows SDK/STL headers; the raw (resource-dir-wrapped) clangd in the winCross
 shell is required — see below.
 
+`ixray-clangd-db` also post-processes the db to inject `/FI <targetdir>/stdafx.h`
+into every command of a target whose source dir has one (6762 entries / 33
+targets at the time of writing). Reason: clangd parses a header standalone with
+the inferred TU's flags but never replays the TU's include order, and X-Ray
+headers are not self-contained — they assume the target's stdafx was
+force-fed first. The real build does that via `target_precompile_headers` →
+`/FI cmake_pch.hxx`, which `.clangd` must strip (`/Yu*` `/Fp*` `/Yc*` — the .pch
+never exists in configure-only `build-lsp/`). Without the injected `/FI`,
+headers die in cascades starting from a single real error (typically
+`ENGINE_API`/xrCore never being included), the 19-error limit trips, and the
+fatal "too many errors emitted" gets pinned at line 1 (`#pragma once` / include
+guard) with "unknown type BOOL/LPCSTR" noise behind it. `.clangd` therefore
+does NOT strip `/FI*` — don't re-add it, it would neuter the injection.
+
 ## Profiling & benchmarking
 
 ```bash

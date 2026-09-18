@@ -8,6 +8,16 @@
 # (configure only, never built) purely to emit per-file compile commands; the
 # root compile_commands.json symlink points at it.
 #
+# X-Ray headers are not self-contained: they assume the target's stdafx.h was
+# force-fed first (the real build does that via target_precompile_headers →
+# /FI cmake_pch.hxx). clangd parses headers standalone with the inferred TU's
+# flags but never replays the TU's include order, and cmake_pch.hxx doesn't
+# exist here (configure only) — so headers lose the stdafx context and die in
+# cascades ("unknown type BOOL/LPCSTR", "too many errors" pinned at line 1).
+# Fix: post-process the db to inject /FI <targetdir>/stdafx.h for every
+# target whose source dir has one — exactly what the PCH would have force-fed.
+# This is why .clangd must NOT strip /FI*.
+#
 # Usage: ixray-clangd-db [extra cmake args]
 
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
@@ -15,6 +25,44 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 cmake -S "$REPO_ROOT" -B build-lsp -G "Ninja Multi-Config" \
     -DCMAKE_TOOLCHAIN_FILE="$REPO_ROOT/cmake/msvc-cross.cmake" \
     -DIXRAY_UNITYBUILD=OFF "$@"
+
+python3 - "$REPO_ROOT/build-lsp/compile_commands.json" "$REPO_ROOT" <<'PYEOF'
+import json, re, sys
+from pathlib import Path
+
+db_path, repo = sys.argv[1], Path(sys.argv[2]).resolve()
+
+# target name -> absolute stdafx.h, for every target defined next to one
+target_stdafx = {}
+tgt = re.compile(r'\badd_(?:library|executable)\s*\(\s*([A-Za-z0-9_.\-]+)')
+for cm in repo.glob('src/**/CMakeLists.txt'):
+    for name in tgt.findall(cm.read_text(errors='ignore')):
+        stdafx = cm.parent / 'stdafx.h'
+        if stdafx.is_file():
+            target_stdafx[name] = str(stdafx)
+
+cmfiles = re.compile(r'CMakeFiles/([^/]+)\.dir')
+db = json.loads(Path(db_path).read_text())
+changed = 0
+for e in db:
+    m = cmfiles.search(e.get('output') or '') or cmfiles.search(e['command'])
+    if not m:
+        continue
+    stdafx = target_stdafx.get(m.group(1))
+    if stdafx is None:
+        continue
+    fi = '/FI' + stdafx
+    cmd = e['command']
+    if fi in cmd:  # idempotent on an already-injected db
+        continue
+    first, _, rest = cmd.partition(' ')
+    e['command'] = first + ' ' + fi + ' ' + rest
+    changed += 1
+
+Path(db_path).write_text(json.dumps(db, indent=1))
+print(f"==> injected /FI stdafx into {changed} compile commands "
+      f"({len(target_stdafx)} targets with stdafx.h)")
+PYEOF
 
 ln -sfn build-lsp/compile_commands.json "$REPO_ROOT/compile_commands.json"
 echo "==> build-lsp/compile_commands.json regenerated; root symlink refreshed"

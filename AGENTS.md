@@ -89,7 +89,10 @@ docs/                 engine docs site; `docs/cross-compile.md` = cross-build st
 - First configure needs network (NuGet restore + FetchContent: SDL3, yaml-cpp, nvtt,
   openal-soft). xwin provisions the MSVC SDK into `~/.cache/ixray/msvc-sdk`.
 - `cmake -B build-lsp ... -DIXRAY_UNITYBUILD=OFF` exists purely for clangd (per-file
-  compile commands; unity chunks otherwise have no per-source entries).
+  compile commands; unity chunks otherwise have no per-source entries). `ixray-clangd-db`
+  also injects `/FI <targetdir>/stdafx.h` into the db — clangd parses headers standalone
+  and X-Ray headers assume the stdafx preamble; `.clangd` must NOT strip `/FI*` (see
+  docs/devshell.md).
 - `CMAKE_POLICY_VERSION_MINIMUM=3.5` is exported by the shells (yaml-cpp/nvtt declare
   ancient `cmake_minimum_required`).
 
