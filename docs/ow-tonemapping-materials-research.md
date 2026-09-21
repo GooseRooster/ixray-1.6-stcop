@@ -1,7 +1,8 @@
 # Old World → IX-Ray: Retro Tonemapping & Material Pipeline — Research Document
 
-> Status: **research output**, pre-plan. This is raw input for an action plan —
-> trim, edit, and re-cut it. Phase 1–4 draft mapping in §6; open decisions in §7.
+> Status: **research output**. Superseded as build order by
+> `docs/ow-tonemapping-materials-plan.md` (the §6/§7 drafts below were revised
+> during planning — the plan doc is authoritative for scope and sequencing).
 > Privacy: private repo content is referenced by **repo-relative path only**
 > (`oldworld:...`, `xray-monolith:...` prefixes). No absolute private paths here.
 
