@@ -2,3 +2,4 @@
 {"pattern": "cmake/msvc-cross.cmake", "reason": "Linux->Windows cross toolchain file, fork-only", "added_via": "seed", "added_date": "2026-09-18"}
 {"pattern": "flake.nix", "reason": "fork-only Nix devshells", "added_via": "seed", "added_date": "2026-09-18"}
 {"pattern": ".clangd", "reason": "clang-cl compile-db suppressions, fork-only", "added_via": "seed", "added_date": "2026-09-18"}
+{"pattern": "src/Layers/xrRenderPC_R4/r4_rendertarget.cpp", "reason": "OW port P1: FP16 RTs unconditional (rt_Color/Surface/Generic_1/Bloom_1-2/BackbufferLUT) — OW RT table parity", "added_via": "port-ow-phase-1", "added_date": "2026-09-21"}

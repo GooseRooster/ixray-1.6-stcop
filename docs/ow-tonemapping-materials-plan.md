@@ -60,8 +60,11 @@
 
 1. **Unconditional FP16 RTs**: `rt_Color` (albedo), `rt_Surface`,
    `rt_Generic_1`, `rt_Bloom_1/2`, `rt_BackbufferLUT`. Everything already FP16
-   stays. No new cvar. Albedo storage policy: linear-in-FP16 (gamma encode is
-   applied by producers per the H2 policy; final policy detail resolved here).
+   stays. No new cvar. Albedo storage policy (**resolved**): FP16 stores
+   gamma-encoded values exactly as producers write them today (identity
+   Push/PopGamma under legacy lighting) — same encoding as OW, more precision;
+   no producer changes. (`rt_Normal` keeps R16G16B16A16_UNORM and R2/DX9-side
+   RTs are untouched — not hot zones.)
 2. **Clamp audit** (§4): classify all `saturate`/`clamp` in
    `gamedata/shaders/d3d11/**` (124 matches / 55 files at audit time) plus
    engine-side clamps (env boost, `gamma_apply`, RT writers).
@@ -72,8 +75,9 @@
      domain) — keep.
    - Sequenced final gates — left to the phase restructuring that stage
      (each listed in that phase's scope below).
-3. Env-boost clamp conditionalization (SDR {1,1,1} vs HDR {10,10,10}) is
-   **deferred to Phase 5** — the SDR pipeline keeps the 1.0 clamp.
+3. Env-boost clamp: **dropped entirely** (audit found OW's `boost()` does not
+   exist in this engine — no clamps to remove, and nothing to add: env colors
+   above 1.0 are compressed by the spline in HDR anyway).
 
 **Exit:** parity gate; banding/highlight test scenes; inventory table complete.
 
@@ -166,8 +170,9 @@ Engine touches: binders in `Blender_Recorder_StandartBinding.cpp`
   in `tonemapping.hlsli`.
 - `ApplyTonemap_UI` on `hud_font/font2/hud3d/simple_color/yuv2rgb`; PDA path.
 - `rt_secondVP`/UI RT 10-bit formats.
-- Env-boost clamp conditionalization (SDR {1,1,1} / HDR {10,10,10}) — deferred
-  from Phase 1, done here.
+- ~~Env-boost clamp conditionalization~~ — **dropped** (see Phase 1 item 3:
+  `boost()` doesn't exist here; HDR relies on the spline's compression of
+  >1.0 env colors).
 - MSAA force-off under HDR; screenshot path; particle HDR vertex path
   (`deffer_particle`/engine).
 - `r4_hdr10_*` console surface; `defaults_video.ltx` values as reference.
@@ -217,39 +222,70 @@ Wine builtin behaviors per root `AGENTS.md`).
 
 ## 4. Clamp inventory
 
-**Method.** Audit every `saturate(`/`clamp(` in `gamedata/shaders/d3d11/**`
-(124 matches / 55 files at audit time) + engine-side clamps (env boost,
-`gamma_apply`, RT writers). Classify:
+**Status: complete (P1 audit).** Every `saturate(`/`clamp(` in
+`gamedata/shaders/d3d11/**` (124 matches / 55 files at audit time) + engine
+clamps was classified. Headline: **no active-path output clamps feed FP16
+targets** — the single O-candidate (`forward_base.ps.hlsl:96`) turned out to
+be the deliberate Reinhard compression of the *offscreen reflection buffer*
+(`USE_LENGTH_BUFFER` = SE_R2_REFLECTIONS only), which is fully dormant under
+`USE_LEGACY_LIGHT`. Nothing to unclamp in P1; the value of the audit is the
+locked classification below.
+
+**Method.** Each match classified as:
 
 - **G — Guard**: gbuffer encode/decode, AO, blend weights, texcoord/sampler
-  domain, fog factors. Keep.
-- **O — Output-clipping on HDR-carrying path**: remove/adjust in Phase 1.
+  domain, fog factors, material property scaling, UI/HUD LDR domain. Keep.
+- **O — Output-clipping on HDR-carrying path**: remove/adjust. **None on
+  active paths.**
 - **S — Sequenced final gate**: left alone until the phase restructuring that
-  stage (listed below). Never forget these — they are the ones that clip to
-  SDR if a phase is forgotten.
+  stage. Never forget these — they are the ones that clip to SDR if a phase
+  is forgotten.
+- **D — Dormant (PBR-mode-only path)**: `USE_LEGACY_LIGHT` disables the whole
+  subsystem (SSLR/offscreen reflections); no action while dormant.
 
-Seed entries (P1 audit continues from here):
+### S-class register (each tagged with its action phase)
 
-| File:line | What | Class | Action phase |
-|---|---|---|---|
-| `forward_base.ps.hlsl:96` | Reinhard-style `saturate(c * rcp(1+c))` on forward-path output → `rt_Generic_0` (FP16) | O | **P1** |
-| `forward_base.ps.hlsl:45` | `M.Sun = saturate(M.Sun * 2.0f)` — material property | G | — |
-| `forward_base.ps.hlsl:46` | `PushGamma(saturate(M.Color))` — albedo encode | G | — |
-| `forward_base.ps.hlsl:88` | fog factor | G | — |
-| `gamma_apply.ps.hlsl:17` | final LDR gate `saturate(c * grading)` | S | P3 (stage replaced by tonemapper) |
-| `postprocess.ps.hlsl:12-13` | `saturate(s_baseN.Sample)` sample clamps | S | P3 (stage restructure) |
-| `taa_render.ps.hlsl:38/43` | reversible tonemapper pair (`saturate(c * rcp(1+c))` + inverse) | S | P3 (H4 operator swap) |
-| `taa_render.ps.hlsl:145/183` | screen-position clamps | G | — |
-| `common_functions.hlsli:186` | `saturate(image)` on luminance/bloom helper | O/S | audit P1 (feeds exposure/bloom) |
-| `common_functions.hlsli:176` | bloom threshold clamp | S | P4 (bloom rework) |
-| `combine_2.ps.hlsl:26` | `saturate(Color)` for `lut.dds` sample domain | G (dormant system) | — |
-| `combine_1.ps.hlsl:48`, `metalic_roughness_ambient.hlsli:130` | fog factors | G | — |
-| `accum_sun.ps.hlsl:48` | farshadow/hemi blend | G | — |
-| engine `Environment*` boost() | SDR {1,1,1} env clamp | S | P5 |
+| Location | What | Action phase |
+|---|---|---|
+| `gamma_apply.ps.hlsl:17` | final LDR gate `saturate(c * grading)` | P3 (stage replaced by tonemapper) |
+| `gamma_apply.ps.hlsl:19` → `common_functions.hlsli:186` | `deband_color()` — `saturate(image)` pre-dither | P3 (final-stage restructure) |
+| `postprocess.ps.hlsl:12-13`, `postprocess_cm.ps.hlsl:16-17` | `saturate(s_baseN.Sample)` sample clamps | P3 (stage restructure) |
+| `taa_render.ps.hlsl:38/43` | Lottes reversible tonemapper pair | P3 (H4 — update to new operator) |
+| `contrast_adaptive_sharpening.ps.hlsl:42/60` | CAS amplitude calc + output clamp | P3 (CAS runs pre-tonemap after restructure) |
+| `bloom_luminance_3.ps.hlsl:55` | dead exposure clamp (result discarded — H8) | P3 (exposure neutralization) |
+| engine swapchain path | presentation clamps HDR→B8G8R8A8 | P5 (HDR swapchain) |
+
+### G-class (verified guards — abbreviated register, all verified in audit)
+
+| Cluster | Files | Nature |
+|---|---|---|
+| Normal reconstruct/encode | `deffer_impl.ps.hlsl:53,72`, `sload.hlsli:109`, `metalic_roughness_base.hlsli:81,92` | octahedral/normal z |
+| G-buffer material encode | `deffer_impl.ps.hlsl:132-133`, `forward_base.ps.hlsl:45-46`, `lod.ps.hlsl:28` | albedo/sun domain (albedo stays gamma-encoded per H2) |
+| Fog factors | `combine_1.ps.hlsl:48`, `deffer_impl.ps.hlsl:152`, `forward_base.ps.hlsl:88`, `water*.ps.hlsl`, `accum_volumetric_sun.ps.hlsl:85`, `reflections.hlsli:265`, `sslr_temporal.ps.hlsl:115`, `common_functions.hlsli:221` | lerp factor 0–1 |
+| AA machinery | `taa_render.ps.hlsl:145,183,187,197,207`, `smaa.hlsli:875,893,1102`, `fxaa.hlsli:378,387` (macros), `common_functions.hlsli:176` (R1-sequence alpha threshold for jitter) | position/UV/weight domain |
+| AO | `ssao.ps.hlsl:78,81`, `ssao_blur.ps.hlsl:27`, `gtao_render.ps.hlsl:96,116,130,140,151`, `gtao_filter.ps.hlsl:84` | occlusion domain |
+| Shadows | `shadow.hlsli:176,343`, `accum_sun.ps.hlsl:48`, `rain_patch_normal*.ps.hlsl` | shadow/falloff domain |
+| Light shape | `metalic_roughness_light.hlsli:20,72,74,75`, `accum_volumetric.ps.hlsl:43`, `common_functions.hlsli:117` (spot edge) | attenuation factors |
+| Screen-space spatial masks | `dof.hlsli:23-24`, `vignette.ps.hlsl:6`, `chromatic_aberration.ps.hlsl:7`, `ssao` spatial | 0–1 spatial factors |
+| SSLR internals | `sslr_*.ps.hlsl` (AABB, fog, depth-delta, `sslr_filter.ps.hlsl:112` output) | D (dormant subsystem) |
+| Reflection buffer | `forward_base.ps.hlsl:96`, `deffer_impl.ps.hlsl:159` | D (dormant; deliberate Reinhard into env cube) |
+| Particles/fluid | `particle*.ps.hlsl`, `fluid_*.ps.hlsl` (2 commented matches in `fluid_common_render.hlsli:185,301` — dead comments) | fluid/soft-particle domain |
+| HUD/UI shaders | `model_scope_*.ps.hlsl`, `model_exohealth.ps.hlsl`, `models_reflex_lens.ps.hlsl` (reads `s_tonemap` luminance — works after P3 since the chain keeps running) | UI LDR domain |
+| `combine_2.ps.hlsl:26` | `saturate(Color)` for `lut.dds` sample domain | G (dormant system) |
+
+### Engine-side register
+
+| Location | Nature | Class |
+|---|---|---|
+| `Environment_misc.cpp` mixer `lerp()` (338-633) | only scalar domain clamps (rain density, angles, weights); **no color clamps** — env colors pass through unclamped | G (verified: research doc's "unconditional 1.0 env clamps" describes monolith's `boost()`, which does not exist here) |
+| `Blender_Recorder_StandartBinding.cpp` env binders (308-425) | lumscale multipliers only, no clamps | G |
+| `r4_rendertarget.cpp` LUM pool clear (127/255) | clear color domain | G |
 
 Rules: every later phase re-consults this table; new clamps introduced by OW
 ports get classified here; the parity gate fails touched files with
-unclassified SDR clamps.
+unclassified SDR clamps. OW's `boost()` env-clamp system is **skipped
+entirely** — it does not exist in this engine and the HDR path compresses
+>1.0 env colors via the spline.
 
 ---
 
