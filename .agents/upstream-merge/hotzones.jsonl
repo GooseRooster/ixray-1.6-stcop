@@ -3,3 +3,13 @@
 {"pattern": "flake.nix", "reason": "fork-only Nix devshells", "added_via": "seed", "added_date": "2026-09-18"}
 {"pattern": ".clangd", "reason": "clang-cl compile-db suppressions, fork-only", "added_via": "seed", "added_date": "2026-09-18"}
 {"pattern": "src/Layers/xrRenderPC_R4/r4_rendertarget.cpp", "reason": "OW port P1: FP16 RTs unconditional (rt_Color/Surface/Generic_1/Bloom_1-2/BackbufferLUT) — OW RT table parity", "added_via": "port-ow-phase-1", "added_date": "2026-09-21"}
+{"pattern": "src/Layers/xrRenderPC_R4/r4.cpp", "reason": "OW port P2: hemi_parameters + tex_contrast binders/registrations", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
+{"pattern": "src/xrEngine/Environment.h", "reason": "OW port P2: hemi_vibrance/hemi_contrast/wet_surface_factor weather fields", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
+{"pattern": "src/xrEngine/Environment_misc.cpp", "reason": "OW port P2: weather key load + mixer lerp for hemi params", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
+{"pattern": "src/Layers/xrRender/xrRender_console.*", "reason": "OW port P2: r__tf_contrast cvar", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
+{"pattern": "src/Layers/xrRender/Blender_Recorder_StandartBinding.cpp", "reason": "OW port P2+: binder hot zone (rain_params/env binders already touched by framework)", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/owa_*.hlsli", "reason": "OW port P2: isolated OW material/hemisphere/wetness/oklab files (fork-owned)", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/metalic_roughness_light.hlsli", "reason": "OW port P2: DirectLightResponse + terminator + sqrt attenuation + fresnel", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/combine_1.ps.hlsl", "reason": "OW port P2: owa_hemisphere + tex contrast + wetness + OW albedo composition", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/accum_*.ps.hlsl", "reason": "OW port P2: accum protocol — rgb=response×color×shadow, a=spec×shadow", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/common_defines.hlsli", "reason": "OW port P2: def_gloss 24/255 (SoC glossy)", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}

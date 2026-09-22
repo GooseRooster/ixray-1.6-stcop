@@ -78,6 +78,9 @@ extern ECORE_API	BOOL		ps_r2_particle_dt;
 extern ECORE_API Flags32		ps_r2_ls_flags;				// r2-only
 extern ECORE_API Flags32		ps_r2_ls_flags_ext;
 extern ECORE_API float			ps_r2_df_parallax_h;		// r2-only
+
+// OWA: texture contrast strength (Build 3120 style; 0 = off, 1 = full)
+extern ECORE_API float			ps_r__tf_contrast;
 extern ECORE_API float			ps_r2_df_parallax_range;	// r2-only
 extern ECORE_API float			ps_r2_gmaterial;			// r2-only
 extern ECORE_API float			ps_r2_tonemap_middlegray;	// r2-only

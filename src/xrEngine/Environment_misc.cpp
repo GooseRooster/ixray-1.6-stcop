@@ -291,6 +291,10 @@ CEnvDescriptor::CEnvDescriptor	(shared_str const& identifier) :
 
 	m_fSunShaftsIntensity = 0;
 	m_fWaterIntensity = 1;
+	// OWA: neutral weather defaults
+	m_fHemiVibrance = 1.f;
+	m_fHemiContrast = 1.f;
+	m_fWetSurfaces = 0.f;
 
     lens_flare_id		= "";
 	tb_id				= "";
@@ -401,6 +405,14 @@ void CEnvDescriptor::load	(CEnvironment& environment, CInifile& config)
 
 	if (config.line_exist(m_identifier.c_str(),"water_intensity"))
 		m_fWaterIntensity = config.r_float(m_identifier.c_str(),"water_intensity");
+
+	// OWA: additive weather keys (present in OW weathers; harmless if absent)
+	if (config.line_exist(m_identifier.c_str(),"hemi_vibrance"))
+		m_fHemiVibrance = config.r_float(m_identifier.c_str(),"hemi_vibrance");
+	if (config.line_exist(m_identifier.c_str(),"hemi_contrast"))
+		m_fHemiContrast = config.r_float(m_identifier.c_str(),"hemi_contrast");
+	if (config.line_exist(m_identifier.c_str(),"wet_surface_factor"))
+		m_fWetSurfaces = config.r_float(m_identifier.c_str(),"wet_surface_factor");
 
 	C_CHECK					(clouds_color);
 	C_CHECK					(sky_color	);
@@ -589,6 +601,11 @@ void CEnvDescriptorMixer::lerp	(CEnvironment* Env, CEnvDescriptor& A, CEnvDescri
 
 	m_fSunShaftsIntensity	=	fi*A.m_fSunShaftsIntensity + f*B.m_fSunShaftsIntensity;
 	m_fWaterIntensity		=	fi*A.m_fWaterIntensity + f*B.m_fWaterIntensity;
+
+	// OWA: hemisphere/weather params lerp
+	m_fHemiVibrance			=	fi*A.m_fHemiVibrance + f*B.m_fHemiVibrance;
+	m_fHemiContrast			=	fi*A.m_fHemiContrast + f*B.m_fHemiContrast;
+	m_fWetSurfaces			=	fi*A.m_fWetSurfaces + f*B.m_fWetSurfaces;
 
 	trees_amplitude = fi * A.trees_amplitude + f * B.trees_amplitude;
 

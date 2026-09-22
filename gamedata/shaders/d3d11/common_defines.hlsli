@@ -2,7 +2,8 @@
 #define common_defines_h_included
 
 // Defines                                		//
-#define def_gloss float(2.f / 255.f)
+// OWA: SoC style - glossy surfaces (was 2/255 in stock IX-Ray)
+#define def_gloss float(24.f / 255.f)
 #define def_dbumph float(0.333f)
 #define def_virtualh float(0.05f) // 5cm
 #define def_distort float(0.05f) // we get -0.5 .. 0.5 range, this is -512 .. 512 for 1024, so scale it

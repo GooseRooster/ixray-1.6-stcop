@@ -34,8 +34,11 @@ float4 main(v2p_volume I) : SV_Target
     O.SSS *= 0.5f + 0.5f * Fade;
 #endif
 
-    float3 Light = DirectLight(Ldynamic_color, Ldynamic_dir.xyz, O.Normal, O.View.xyz, O.Color, O.Metalness, O.Roughness, O.F0);
-    Light += SimpleTranslucency(Ldynamic_color.xyz, Ldynamic_dir.xyz, O.Normal) * O.SSS * O.Color;
+    // OWA: Direct lighting as material response tuple (rgb = LUT diffuse
+    // response, a = specular response + fresnel). Terminator contrast applies
+    // inside (directional). Albedo/gloss are applied at combine stage.
+    float4 light = DirectLightResponse(Ldynamic_color, Ldynamic_dir.xyz, O.Normal, O.View.xyz, O.Metalness, O.Roughness, true);
+    float3 sss = SimpleTranslucencyResponse(Ldynamic_dir.xyz, O.Normal) * O.SSS;
 
 #if SUN_QUALITY == 2
     float Shadow = shadow_high(PS);
@@ -58,7 +61,10 @@ float4 main(v2p_volume I) : SV_Target
 
     Shadow *= sunmask(Point);
 	Shadow = PushGamma(Shadow);
-	
-    return float4(Light * Shadow, Shadow);
+
+    // OWA: rgb = sun color × diffuse response × shadow (albedo applied at
+    // combine); a = specular response × shadow (highlights must not leak into
+    // shadow).
+    return float4(Ldynamic_color.rgb * (light.rgb + sss) * Shadow, light.a * Shadow);
 }
 

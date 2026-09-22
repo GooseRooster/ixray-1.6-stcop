@@ -169,6 +169,10 @@ public:
 	Fvector3			sun_dir		;
 	float				m_fSunShaftsIntensity;
 	float				m_fWaterIntensity;
+	// OWA: hemisphere/weather params (semantic binder: hemi_parameters)
+	float				m_fHemiVibrance;
+	float				m_fHemiContrast;
+	float				m_fWetSurfaces;
 
 	float				trees_amplitude;
 	float				trees_speed;

@@ -83,32 +83,49 @@
 
 ### Phase 2 — Material seasoning + hemisphere
 
-**Scope:** shader-only + small C++ binders. All new code in new files.
+**Status: implemented (2026-09-21).** Scope: shader-only + small C++ binders.
+All new code in new files (`owa_material.hlsli`, `owa_hemisphere.hlsli`,
+`owa_oklab.hlsli`, `owa_wetness.hlsli`).
 
-New files (in `gamedata/shaders/d3d11/`):
-- `owa_material.hlsli` — terminator contrast (directional only),
-  sqrt point-light attenuation + NdotL seam blend, Schlick metalness fresnel
-  (`owa_metalness.h` behavior).
-- `owa_hemisphere.hlsli` — hmodel rewrite: no-normal `hscale`,
-  luminance/chrominance decoupling, `OWA_SunChrominanceSplit`
-  (**stubbed against DIL until Phase 8**), `hemi_vibrance` → `hmodel_stuff.x`,
-  cubemap mip policy by material.
-- `owa_oklab.hlsli` — Oklab helpers + "texture contrast" blend
-  (`tex_contrast`, `r__tf_contrast`).
-- `owa_wetness.hlsli` — gloss boost, water-film Fresnel sheen,
-  porosity albedo darkening.
+Delivered:
+- `DirectLightResponse()` (LUT response tuple: rgb=diffuse, a=specular) with
+  Schlick metalness fresnel add and directional-only terminator contrast
+  (`metalic_roughness_light.hlsli`; `DirectLight()` kept as an albedo-applied
+  wrapper for the dormant forward/length-buffer paths).
+- **Direct specular activated** (user decision): accumulator protocol now OW's
+  — rgb = response × light color × shadow, alpha = specular response × shadow;
+  albedo+gloss applied once in `combine_1` (`C = albedo.gloss × light`). IX-Ray's
+  legacy direct lighting was structurally diffuse-only (`Ldynamic_color.w=0`);
+  the OW composition makes direct specular live (required for the fresnel to
+  land).
+- OW sqrt point-light attenuation + NdotL seam blend in
+  `ComputeLightAttention` (now takes NdotL; `accum_base.ps.hlsl` call site).
+- OW's flora fix in `accum_base.ps.hlsl` (normal-lean toward light, gloss×0.5).
+- `owa_hemisphere` in `combine_1`: no-normal hscale, luminance/chrominance
+  decoupling, `hemi_parameters.x` vibrance, material-based cube mips,
+  SunChrominanceSplit (**SH direction stubbed to zero — wired at P8/DIL**),
+  wet gloss boost + water-film sheen.
+- `tex_contrast` Oklab blend (`owa_oklab.hlsli`) in `combine_1`.
+- Wetness: porosity albedo darkening in `combine_1` (`owa_wetness.hlsli`).
+- `def_gloss` 2/255 → 24/255 (SoC glossy — playtest call).
+- Engine: `hemi_parameters` binder (vibrance/contrast/wet-surface from
+  CurrentEnv) + `tex_contrast` binder registered globally in `r4.cpp`;
+  `hemi_vibrance`/`hemi_contrast`/`wet_surface_factor` weather keys read +
+  mixer-lerped (`Environment.h`/`Environment_misc.cpp`); `r__tf_contrast`
+  cvar (`xrRender_console`).
+- **Binder rename**: OW's `hmodel_stuff` (legacy `meatchunks_stuff` slot) is
+  now `hemi_parameters` — same contents, semantic name.
 
-Minimal call-site edits: `metalic_roughness_light.hlsli`,
-`metalic_roughness_ambient.hlsli`, `combine_1.ps.hlsl`,
-`common_defines.hlsli` (`def_gloss` 2/255 → 24/255 — playtest call),
-`sload.hlsli`/`lod.ps.hlsl` gloss.
+Deferred from original P2 scope (re-cut):
+- Multibounce colored AO (`compute_colored_ao`) → DIL phase (P8) — interacts
+  with probe zone factors.
+- `HDR10_Expand*` light expansion in accum shaders → P3 (tonemapper phase).
+- OW's `plight_local_static` (R1-style static local lights) → static-lighting
+  phase (P7).
 
-Engine touches: binders in `Blender_Recorder_StandartBinding.cpp`
-(`hmodel_stuff`, `tex_contrast`), console var `r__tf_contrast`
-(`xrRender_console.cpp`), weather-key reading (`hemi_vibrance`) in
-`Environment*`. **PBR/IBL/SSLR untouched** (dormant).
-
-**Exit:** parity gate; visual side-by-side vs OW screenshots; hot zones.
+**Exit:** parity gate PASS; visual A/B vs OW screenshots pending on the CoP
+test bench (shaders compile at engine runtime — D3DCompile; validate in
+Proton). Hot zones registered.
 
 ### Phase 3 — Tonemapping pipeline
 
