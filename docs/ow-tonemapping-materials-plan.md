@@ -261,6 +261,10 @@ huge-but-finite value displays as flat white and reads "clean". Mode 7
 4. When the writer is identified: fix at the source, remove the harness,
    re-run the visual A/B, then unlock Phase 4.
 
+### Phase 3.6: Minor fixes from previous work
+
+1. Potentially related to above: In SDR, the sun sprite can actually invert slightly in brightness when you look at directly. Also garbage data or clamping issues?
+2. Rain darkening albedo: Too coarse, visible pixellation, and too intense. Reduce intensity and figure out how to smoothly lerp or remove
 
 ### Phase 4 — Kawase bloom
 
