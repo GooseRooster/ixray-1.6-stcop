@@ -39,6 +39,7 @@ float4 main(v2p_volume I) : SV_Target
     // inside (directional). Albedo/gloss are applied at combine stage.
     float4 light = DirectLightResponse(Ldynamic_color, Ldynamic_dir.xyz, O.Normal, O.View.xyz, O.Metalness, O.Roughness, true);
     float3 sss = SimpleTranslucencyResponse(Ldynamic_dir.xyz, O.Normal) * O.SSS;
+    float3 LitColor = Ldynamic_color.rgb * (light.rgb + sss);
 
 #if SUN_QUALITY == 2
     float Shadow = shadow_high(PS);
@@ -49,13 +50,13 @@ float4 main(v2p_volume I) : SV_Target
 #ifdef USE_FAR_ATTENTION
 	float FarShadow = dot(Ldynamic_dir.xyz, O.Normal.xyz);
 	FarShadow = smoothstep(0.75f, 0.6f, FarShadow) * saturate(O.Hemi * 8.0f - 2.0f);
-	
+
     Shadow = lerp(FarShadow, Shadow, Fade);
 
 #elif defined(USE_HUD_SHADOWS)
-    if (O.Depth < 0.02f && dot(Shadow.xxx, Light.xyz) > 0.0001f)
+    if (O.Depth < 0.02f && dot(LitColor, float3(1.0f, 1.0f, 1.0f)) > 0.0001f)
     {
-        RayTraceContactShadow(tcProj, O.PointHud, Ldynamic_dir.xyz, Light);
+        RayTraceContactShadow(tcProj, O.PointHud, Ldynamic_dir.xyz, LitColor);
     }
 #endif
 
@@ -65,6 +66,6 @@ float4 main(v2p_volume I) : SV_Target
     // OWA: rgb = sun color × diffuse response × shadow (albedo applied at
     // combine); a = specular response × shadow (highlights must not leak into
     // shadow).
-    return float4(Ldynamic_color.rgb * (light.rgb + sss) * Shadow, light.a * Shadow);
+    return float4(LitColor * Shadow, light.a * Shadow);
 }
 

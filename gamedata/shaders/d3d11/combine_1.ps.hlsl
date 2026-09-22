@@ -31,7 +31,7 @@ float4 main(_input I) : SV_Target
 
 #ifndef USE_LEGACY_LIGHT
 	#ifdef USE_R2_STATIC_SUN
-		Light += O.SSS * DirectLight(Ldynamic_color, Ldynamic_dir.xyz, O.Normal, O.View.xyz, O.Color, O.Metalness, O.Roughness, O.F0);
+		Light.rgb += O.SSS * DirectLight(Ldynamic_color, Ldynamic_dir.xyz, O.Normal, O.View.xyz, O.Color, O.Metalness, O.Roughness, O.F0);
 	#endif
 
 	#ifdef USE_SSLR_REFLECTIONS
