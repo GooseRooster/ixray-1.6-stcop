@@ -193,9 +193,10 @@ float		ps_r2_sun_far				= 160.f;
 float		ps_r2_sun_near				= 20.f;
 float		ps_r2_sun_depth_far_scale	= 1.00000f;			// 1.00001f
 float		ps_r2_sun_depth_near_scale	= 1.0000f;			// 1.00001f
-float		ps_r2_sun_lumscale			= 1.1f;				// 1.0f
-float		ps_r2_sun_lumscale_hemi		= 0.95f;				// 1.0f
-float		ps_r2_sun_lumscale_amb		= 0.6f;
+// OWA: OW parity - monolith defaults all lumscale values to 1.0 (IX-Ray had 1.1/0.95/0.6)
+float		ps_r2_sun_lumscale			= 1.0f;
+float		ps_r2_sun_lumscale_hemi		= 1.0f;
+float		ps_r2_sun_lumscale_amb		= 1.0f;
 float		ps_r2_sun_lumscale_sky		= 1.2f;
 float		ps_r2_gmaterial				= 2.2f;				// 
 float		ps_r2_zfill					= 0.25f;				// .1f
@@ -733,7 +734,7 @@ void		xrRender_initconsole	()
 	CMD4(CCC_Float,		"r2_parallax_h",		&ps_r2_df_parallax_h,		.0f,	.5f		);
 
 	// OWA: texture contrast strength (Build 3120 style)
-	CMD4(CCC_Integer,	"r__debug_combine",		&ps_r__debug_combine,		0,		6		);
+	CMD4(CCC_Integer,	"r__debug_combine",		&ps_r__debug_combine,		0,		9		);
 	CMD4(CCC_Float,		"r__tf_contrast",		&ps_r__tf_contrast,			0.0f,	1.0f	);
 
 	// OWA: tonemapping pipeline

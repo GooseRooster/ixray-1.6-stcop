@@ -28,8 +28,17 @@
 // OWA: Hemi intensity multiplier - compensates for cubemap luminance decoupling
 #define OWA_HEMI_INTENSITY_MUL 2.0
 
-// IX-Ray binder compensation (see header note)
+// IX-Ray binder compensation (see header note):
+// - hemi: L_hemi_color bakes lumscale_hemi*4, OW net = lumscale_hemi*2 -> x0.5
+// - ambient: L_ambient bakes lumscale_amb*2 and OW adds RAW ambient, so the
+//   compensation needs the lumscale value -> bound as L_lumscale.z (OW's
+//   uniform name and slot layout: x=sun, y=hemi, z=amb).
+#ifndef OWA_LUMSCALE_DECLARED
+#define OWA_LUMSCALE_DECLARED
+uniform float4 L_lumscale; // x=sun, y=hemi, z=amb (IX-Ray console values)
+#endif
 #define OWA_ENV_BINDER_COMPENSATION 0.5
+#define OWA_AMBIENT_BINDER_COMPENSATION rcp(2.0 * L_lumscale.z)
 
 // OWA: Env cubemaps + color multiplier
 // env_color: xyz = color multiplier, w = blend factor (bound by phase_combine)
@@ -154,7 +163,7 @@ void owa_hemisphere
 	float3 env_d_color_split = OWA_SunChrominanceSplit(env_d_color, nw, float3(0, 0, 0), env_d_chroma);
 
 	// OWA: Weather hemi controls brightness via L_hemi_color (binder-compensated)
-	hdiffuse = env_d_color_split * light.xyz * L_hemi_color.rgb * OWA_ENV_BINDER_COMPENSATION * OWA_HEMI_INTENSITY_MUL + L_ambient.rgb * OWA_ENV_BINDER_COMPENSATION;
+	hdiffuse = env_d_color_split * light.xyz * L_hemi_color.rgb * OWA_ENV_BINDER_COMPENSATION * OWA_HEMI_INTENSITY_MUL + L_ambient.rgb * OWA_AMBIENT_BINDER_COMPENSATION;
 
 // specular color
 	float3 vreflectabs    = abs(vreflect);

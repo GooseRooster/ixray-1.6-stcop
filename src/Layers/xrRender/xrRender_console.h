@@ -83,7 +83,9 @@ extern ECORE_API float			ps_r2_df_parallax_h;		// r2-only
 extern ECORE_API float			ps_r__tf_contrast;
 
 // OWA: combine_1 channel debug (0 = off; 1 = accum rgb, 2 = accum alpha,
-// 3 = hemisphere diffuse, 4 = env specular, 5 = direct spec term, 6 = albedo x light)
+// 3 = hemisphere diffuse, 4 = env specular, 5 = direct spec term, 6 = albedo x light,
+// 7 = false-color luminance heatmap of the pre-tonemap compose,
+// 8/9 = NaN/Inf detectors (red = garbage; 8 = gbuffer inputs, 9 = compose results)
 extern int						ps_r__debug_combine;
 
 // OWA: tonemapping pipeline parameters (uniform names match OW for diff-ability)

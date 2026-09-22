@@ -198,6 +198,70 @@ engine binders.
   now inert for direct specular — the response protocol ignores
   `Ldynamic_color.w`).
 
+
+  ### Phase 3.5 — Lamp/omni light artifact investigation (BLOCKS Phase 4)
+
+**Priority: fix properly before starting Phase 4 (Kawase bloom) — the bloom
+phase must not be built on top of an unresolved compose-path defect.**
+
+**Symptom (user report, CoP test bench, Skadovsk lamps):**
+- Omni/spot lights produce harsh "deep fried" flares: saturated chroma halos
+  hugging the light volume, plus small "separator" artifacts where the grille
+  mesh surrounding a bulb meets the light volume.
+- Persists with bloom disabled (bloom only reacts to the data, not the cause).
+- Strongly chroma-dependent: saturated orange lamps affected most, white
+  point lights less — consistent with a saturation-amplifying path.
+- Transient component: white lights briefly emit *flickers of garbage in
+  crazy saturated colors* (user suspects near-infinite values) — frame-varying,
+  visible in debug modes 6 (albedo × light) and 7 (compose luminance heatmap),
+  near-constant in normal render.
+
+**Ruled out (verified, not guesswork):**
+- NaN/Inf in G-buffer albedo/gloss/hemi/material — detector mode 8 clean.
+- NaN/Inf in compose result, accumulator (rgb+a), hemisphere terms — mode 9 clean.
+- Direct LUT specular magnitude — engine LUT bake reproduced in Python; spec
+  response ≤ 0.035 at hotspots; contribution ~0.2% of lamp color.
+- Stale G-buffer at shell pixels — omni passes are stencil-gated to
+  geometry-rendered pixels.
+- Stale `Ldynamic_color` at combine — engine rebinds the adapted sun
+  (`sunclr`/`sundir`) before `combine_1` renders.
+- Volumetric/mask-path alpha pollution — `SE_MASK_ACCUM_VOL` is R2-only; R4
+  volumetrics merge RGB-only into `rt_Generic_2`.
+- Bloom as the source (persists with bloom off).
+
+**Fixed during the investigation (kept):**
+- Gloss semantics aligned to OW: linear texture gloss + additive detail gloss
+  (`sload.hlsli`, `deffer_impl.ps.hlsl`); BmmD base-bump gloss now read.
+- Hemisphere ambient binder compensation: was 0.6× OW (lumscale_amb baked);
+  now exact via `L_lumscale` uniform.
+- `r2_sun_lumscale*` defaults → 1.0 (OW parity).
+- Debug harness `r__debug_combine` modes 1–9 (remove after investigation,
+  see Phase 9).
+
+**Key insight from the last debug round:**
+All magnitude-viewing modes (1–5) wrap their output in `saturate()` — a
+huge-but-finite value displays as flat white and reads "clean". Mode 7
+(heatmap, red = luminance > 2.5) *did* fire — so the transient garbage is
+**huge-but-finite, not NaN**. The harness cannot currently display magnitude.
+
+**Next steps (ordered):**
+1. **Magnitude-preserving debug modes**: add modes showing `log2(1+value)` or
+   ×0.01 views of `Light.rgb`, `Light.a`, `C.rgb`, `spec` — establishes which
+   channel carries the transient magnitude spike.
+2. **Chain bisection**: disable optional stages one at a time
+   (`ps_r4_cas_sharpening 0`, AA off / TAA off, `r2_mblur 0`, DOF off,
+   `r2_ls_bloom_* 0`) to bracket where the spike enters *after* `combine_1`
+   (candidates: TAA history feedback on HDR values, CAS's inverse-map guard
+   `rcp(max(1e-5, 1−x))` firing on near-saturated HDR pixels, mblur reading
+   previous-frame garbage, postprocess `×2.0` brightness on HDR).
+3. **Suspicious-magnitude audit**: the TAA Lottes pair and CAS both use
+   `x/(1−x)`-style inverses guarded by epsilon — on values that approach the
+   clamp, these produce ~1e4-1e5 amplifications (finite, but the exact
+   "near-infinite flicker" profile). Verify against HDR-scale inputs.
+4. When the writer is identified: fix at the source, remove the harness,
+   re-run the visual A/B, then unlock Phase 4.
+
+
 ### Phase 4 — Kawase bloom
 
 **Scope:** own phase; port + refactor + fix H1.
@@ -281,6 +345,36 @@ Wine builtin behaviors per root `AGENTS.md`).
 **Exit:** parity gate; A/B + brightness/sky-exposure playtest.
 
 ---
+
+
+### Phase 9 — Cleanup & parity tweaks (standing register)
+
+Small parity/cleanup items that surface during playtesting; executed as a
+batch once the ported phases stabilize:
+
+- **Lumscale defaults → 1.0** (OW parity; monolith defaults all three
+  `r2_sun_lumscale*` cvars to 1.0 — done 2026-09-21). Note: with all
+  lumscales at 1.0, the hemisphere's `L_lumscale`-based ambient compensation
+  resolves to a clean ×1.0, and the old IX-Ray triple (1.1/0.95/0.6) is gone.
+- **Remove the `r__debug_combine` harness** (console cvar + binder +
+  `combine_1` debug block) after the lamp-artifact investigation closes.
+- Sweep stale comments left by superseded values (e.g., `// 1.0f` markers
+  that no longer match).
+- Collected during playtests: any remaining small divergences found while
+  A/B-ing against OW get queued here instead of ad-hoc fixes.
+
+- **Two-stage strategy**: port the custom engine features first (Phases 1–8,
+  all testable on the CoP-based test bench with this repo's own gamedata),
+  then port the OW game codebase as it stands as a separate body of work.
+- Order is deliberate: RT ceiling (P1) → surfaces (P2) → the tonemapper (P3)
+  → **artifact investigation (P3.5, blocking)** → bloom against the final
+  topology (P4) → HDR as second output (P5) → independent features (P6) →
+  static lighting (P7) → DIL last (P8).
+- Hemisphere's chroma split and wetness are the only P2 items with
+  forward-dependencies (P8 probes, weather keys) — stubs documented at stub
+  sites.
+- If upstream evolves anything we're dormant-skipping, `upstream-review`
+  re-evaluates before each sync — that's the payoff of the no-strip policy.
 
 ## 4. Clamp inventory
 
@@ -375,16 +469,5 @@ entirely** — it does not exist in this engine and the HDR path compresses
 
 ---
 
-## 6. Sequencing notes
 
-- **Two-stage strategy**: port the custom engine features first (Phases 1–8,
-  all testable on the CoP-based test bench with this repo's own gamedata),
-  then port the OW game codebase as it stands as a separate body of work.
-- Order is deliberate: RT ceiling (P1) → surfaces (P2) → the tonemapper (P3)
-  → bloom against the final topology (P4) → HDR as second output (P5) →
-  independent features (P6) → static lighting (P7) → DIL last (P8).
-- Hemisphere's chroma split and wetness are the only P2 items with
-  forward-dependencies (P8 probes, weather keys) — stubs documented at stub
-  sites.
-- If upstream evolves anything we're dormant-skipping, `upstream-review`
-  re-evaluates before each sync — that's the payoff of the no-strip policy.
+
