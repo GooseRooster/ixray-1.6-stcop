@@ -108,6 +108,17 @@ Delivered:
 - `tex_contrast` Oklab blend (`owa_oklab.hlsli`) in `combine_1`.
 - Wetness: porosity albedo darkening in `combine_1` (`owa_wetness.hlsli`).
 - `def_gloss` 2/255 → 24/255 (SoC glossy — playtest call).
+- **Gloss semantics aligned to OW (post-P2 playtest finding)**: the legacy
+  squaring of texture gloss (`Bump.x²`) and the multiplicative detail gloss
+  (`×2·Detail.w`) are replaced by OW's **linear texture gloss + additive detail
+  gloss** (`s_bump.x`, then `+ s_detailBump.x` / `+ s_detail.w`) in
+  `sload.hlsli` (deffer_base/forward/lod paths) and `deffer_impl.ps.hlsl`
+  (BmmD level geometry — base bump gloss now read additively; was ignored).
+  Rationale: squaring crushed matte surfaces while the ×2 detail multiplier
+  could push gloss >1 and over-amplify the razor-thin LUT specular response —
+  prime suspect for the lamp-flare artifact. Visual expectation: matte
+  surfaces slightly *more* sheeny than before (linear mid-range), hot detail
+  spikes *smoothed*.
 - Engine: `hemi_parameters` binder (vibrance/contrast/wet-surface from
   CurrentEnv) + `tex_contrast` binder registered globally in `r4.cpp`;
   `hemi_vibrance`/`hemi_contrast`/`wet_surface_factor` weather keys read +

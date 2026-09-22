@@ -15,6 +15,10 @@ Texture2D<float> s_occ;
 // OWA texture contrast (Build 3120 style) — 0-1 range, scales effect strength
 uniform float4 tex_contrast;
 
+// OWA: channel debug (r__debug_combine): 1 = accum rgb, 2 = accum alpha,
+// 3 = hemisphere diffuse, 4 = env specular, 5 = direct spec term, 6 = albedo x light
+uniform float4 debug_combine_params;
+
 struct _input
 {
     float4 tc0 : TEXCOORD0;
@@ -92,6 +96,18 @@ float4 main(_input I) : SV_Target
     float3 spec = hspecular * C.rgb + C.w * lerp(C.rgb, 1.0h, 0.5h) * owa_spec_light;
 
     float3 Color = C.rgb + spec;
+
+    // OWA: channel debug — isolate where an artifact lives
+    if (debug_combine_params.x > 0.5f)
+    {
+        int dbg_mode = int(debug_combine_params.x);
+        if (dbg_mode == 1) return float4(saturate(Light.rgb), 1.0f);
+        if (dbg_mode == 2) return float4(saturate(Light.a.xxx * 4.0f), 1.0f);
+        if (dbg_mode == 3) return float4(saturate(hdiffuse), 1.0f);
+        if (dbg_mode == 4) return float4(saturate(hspecular), 1.0f);
+        if (dbg_mode == 5) return float4(saturate(C.w * lerp(C.rgb, 1.0h, 0.5h) * owa_spec_light), 1.0f);
+        if (dbg_mode == 6) return float4(saturate(C.rgb), 1.0f);
+    }
 #endif
 
     float Fog = PushGamma(saturate(O.ViewDist * fog_params.w + fog_params.x));

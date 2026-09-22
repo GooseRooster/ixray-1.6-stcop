@@ -22,6 +22,7 @@ void main(p_bumped_new I, out OutStructure O)
 
     M.Color = s_base.Sample(smp_base, I.tcdh.xy);
 	M.Metalness = 0.0f;
+	M.Roughness = 0.0f;
 	M.SSS = 0.0f;
 	M.AO = 1.0f;
 
@@ -76,7 +77,7 @@ void main(p_bumped_new I, out OutStructure O)
 	#ifdef USE_4_BUMP
 		float4 Mask = s_mask.Sample(smp_base, I.tcdh.xy);
 		Mask /= dot(Mask, 1.0f);
-		
+
 		float3 Detail_R = s_dt_r.Sample(smp_base, tcdbump).xyz * Mask.x;
 		float3 Detail_G = s_dt_g.Sample(smp_base, tcdbump).xyz * Mask.y;
 		float3 Detail_B = s_dt_b.Sample(smp_base, tcdbump).xyz * Mask.z;
@@ -89,13 +90,21 @@ void main(p_bumped_new I, out OutStructure O)
 		float4 Normal_A = s_dn_a.Sample(smp_base, tcdbump) * Mask.w;
 
 		M.Normal = Normal_R.wzy + Normal_G.wzy + Normal_B.wzy + Normal_A.wzy - 0.5;
+		// OWA: linear gloss sum (closest to OW additive semantics for 4-way blends)
 		M.Roughness = min(1.0f, Normal_R.x + Normal_G.x + Normal_B.x + Normal_A.x);
 	#else
 		float4 Detail = s_detail.Sample(smp_base, tcdbump);
 		float4 DetailBump = s_detailBump.Sample(smp_base, tcdbump);
-		
-		M.Roughness = DetailBump.x;
+
 		M.Normal.xyz = DetailBump.wzy - 0.5f;
+		// OWA: SoC style gloss (OW parity) - linear base gloss + additive detail
+		// gloss. IX-Ray legacy ignored the base bump gloss and multiplied detail.
+		#ifdef USE_BUMP
+			float4 Bump = s_bump.Sample(smp_base, I.tcdh.xy);
+			M.Roughness = Bump.x + DetailBump.x;
+		#else
+			M.Roughness = DetailBump.x;
+		#endif
 	#endif
 		M.Normal.z *= 0.5f;
 		M.Color.xyz *= Detail * 2.0f;

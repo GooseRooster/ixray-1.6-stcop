@@ -129,6 +129,13 @@ static class cl_tex_contrast : public R_constant_setup {
   }
 } binder_tex_contrast;
 
+// OWA: combine_1 channel debug mode
+static class cl_debug_combine : public R_constant_setup {
+  virtual void setup(R_constant *C) {
+    RCache.set_c(C, (float)ps_r__debug_combine, 0, 0, 0);
+  }
+} binder_debug_combine;
+
 // OWA: tonemapping pipeline parameters (uniform slot names kept identical to
 // OW for diff-ability). hdr10_on binds 0 until the HDR output phase wires the
 // swapchain - the SDR spline branch is active, the HDR branch dormant.
@@ -283,6 +290,8 @@ void CRender::create() {
       "hemi_parameters", &binder_hemi_parameters);
   dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
       "tex_contrast", &binder_tex_contrast);
+  dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
+      "debug_combine_params", &binder_debug_combine);
   dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
       "hdr10_parameters1", &binder_hdr10_parameters1);
   dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(

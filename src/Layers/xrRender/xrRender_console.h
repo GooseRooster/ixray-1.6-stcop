@@ -82,6 +82,10 @@ extern ECORE_API float			ps_r2_df_parallax_h;		// r2-only
 // OWA: texture contrast strength (Build 3120 style; 0 = off, 1 = full)
 extern ECORE_API float			ps_r__tf_contrast;
 
+// OWA: combine_1 channel debug (0 = off; 1 = accum rgb, 2 = accum alpha,
+// 3 = hemisphere diffuse, 4 = env specular, 5 = direct spec term, 6 = albedo x light)
+extern int						ps_r__debug_combine;
+
 // OWA: tonemapping pipeline parameters (uniform names match OW for diff-ability)
 extern ECORE_API float			ps_r4_hdr10_whitepoint_nits;	// HDR peak nits (dormant until HDR phase)
 extern ECORE_API float			ps_r4_hdr10_ui_nits;			// UI nits scalar base (dormant)
