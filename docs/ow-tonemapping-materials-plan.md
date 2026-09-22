@@ -215,6 +215,10 @@ Wine builtin behaviors per root `AGENTS.md`).
   (`r4.cpp`), `rt_Lmap` (FP16: RGB indirect bounce, A sun occlusion),
   `static_lighting_compose()` + Blinn-Phong static specular in
   `combine_1.ps.hlsl` (via isolated `owa_static*.hlsli`).
+- From lmodel.h (sequenced in P2): `plight_local_static` (GRM R1-style local
+  lights, no LUT/specular) and the `xmaterial` static-sun material selection
+  in `accum_base` (`m = xmaterial` vs gbuffer `_P.w` under
+  `USE_R2_STATIC_SUN`).
 - Selection UX = dynamic vs static lighting under R4/DX11 always (replaces
   OW's renderer selection). Console: `r4_lighting_style`,
   `r4_static_lighting_quality`.
