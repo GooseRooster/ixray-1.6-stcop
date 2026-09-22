@@ -5,6 +5,7 @@
 #endif
 
 #include "shadow.hlsli"
+#include "tonemapping.hlsli"
 #include "metalic_roughness_light.hlsli"
 #include "ScreenSpaceContactShadows.hlsl"
 
@@ -39,7 +40,8 @@ float4 main(v2p_volume I) : SV_Target
     // inside (directional). Albedo/gloss are applied at combine stage.
     float4 light = DirectLightResponse(Ldynamic_color, Ldynamic_dir.xyz, O.Normal, O.View.xyz, O.Metalness, O.Roughness, true);
     float3 sss = SimpleTranslucencyResponse(Ldynamic_dir.xyz, O.Normal) * O.SSS;
-    float3 LitColor = Ldynamic_color.rgb * (light.rgb + sss);
+    // OWA: Apply sun expansion (SDR: gentle 25% lift; HDR: full range expansion)
+    float3 LitColor = ExpandSunLight(Ldynamic_color.rgb) * (light.rgb + sss);
 
 #if SUN_QUALITY == 2
     float Shadow = shadow_high(PS);

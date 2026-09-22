@@ -12,10 +12,10 @@ float3 main(v2p_aa_AA I) : SV_Target
 #ifdef USE_CGIM_BLOOM_TWEAK
 	Bloom = BrokeBloom(Bloom);
 #endif
-	
-    float Scale = s_tonemap.Sample(smp_nofilter, float2(0.5f, 0.5f)).x;
-    Color = tonemap(Color, Scale);
 
+    // OWA: no tonemapping here anymore - the hermite spline runs at the final
+    // quad (gamma_apply stage), OW composition. Bloom compose stays until
+    // Phase 4 replaces the bloom implementation.
     Color = combine_bloom(Color, Bloom).xyz;
 
 #ifdef USE_CGIM_COLOR_TWEAK

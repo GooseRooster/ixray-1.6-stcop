@@ -152,6 +152,25 @@ float		ps_r2_df_parallax_h			= 0.02f;
 
 // OWA: texture contrast strength (Build 3120 style; 0 = off, 1 = full)
 float		ps_r__tf_contrast			= 0.5f;
+
+// OWA: tonemapping pipeline parameters (defaults = OW engine defaults; HDR
+// output stays dormant until the HDR phase)
+float		ps_r4_hdr10_whitepoint_nits = 400.0f;
+float		ps_r4_hdr10_ui_nits			= 400.0f;
+float		ps_r4_hdr10_pda_intensity	= 1.0f;
+int			ps_r4_hdr10_pda				= 0;
+int			ps_r4_hdr10_on				= 0;
+int			ps_r4_hdr10_colorspace		= 2;
+float		ps_r4_hdr10_chroma_correction = 0.6f;
+float		ps_r4_cg_exposure			= 1.0f;
+float		ps_r4_cg_contrast			= 0.0f;
+float		ps_r4_cg_contrast_middle_gray = 0.5f;
+float		ps_r4_cg_saturation			= 0.0f;
+float		ps_r4_cg_brightness			= 0.0f;
+float		ps_r4_cg_gamma				= 1.0f;
+float		ps_r4_hdr10_ui_saturation	= 0.0f;
+float		ps_r4_hdr10_light_expansion	= 1.0f;
+float		ps_r4_hdr10_particle_expansion = 1.0f;
 float		ps_r2_df_parallax_range		= 60.f;
 float		ps_r2_tonemap_middlegray	= 1.f;			// r2-only
 float		ps_r2_tonemap_adaptation	= 3.f;				// r2-only
@@ -712,6 +731,24 @@ void		xrRender_initconsole	()
 
 	// OWA: texture contrast strength (Build 3120 style)
 	CMD4(CCC_Float,		"r__tf_contrast",		&ps_r__tf_contrast,			0.0f,	1.0f	);
+
+	// OWA: tonemapping pipeline
+	CMD4(CCC_Float,		"r4_hdr10_whitepoint_nits",	&ps_r4_hdr10_whitepoint_nits,	10.0f,	10000.0f);
+	CMD4(CCC_Float,		"r4_hdr10_ui_nits",			&ps_r4_hdr10_ui_nits,			10.0f,	10000.0f);
+	CMD4(CCC_Float,		"r4_hdr10_pda_intensity",	&ps_r4_hdr10_pda_intensity,		0.0f,	4.0f);
+	CMD4(CCC_Integer,	"r4_hdr10_pda",				&ps_r4_hdr10_pda,				0,		1);
+	CMD4(CCC_Integer,	"r4_hdr10_on",				&ps_r4_hdr10_on,				0,		1);
+	CMD4(CCC_Integer,	"r4_hdr10_colorspace",		&ps_r4_hdr10_colorspace,		0,		2);
+	CMD4(CCC_Float,		"r4_hdr10_chroma_correction",	&ps_r4_hdr10_chroma_correction, 0.0f,	1.0f);
+	CMD4(CCC_Float,		"r4_cg_exposure",			&ps_r4_cg_exposure,				0.1f,	30.0f);
+	CMD4(CCC_Float,		"r4_cg_contrast",			&ps_r4_cg_contrast,				-1.0f,	1.0f);
+	CMD4(CCC_Float,		"r4_cg_contrast_middle_gray", &ps_r4_cg_contrast_middle_gray, 0.05f, 1.0f);
+	CMD4(CCC_Float,		"r4_cg_saturation",			&ps_r4_cg_saturation,			-1.0f,	1.0f);
+	CMD4(CCC_Float,		"r4_cg_brightness",			&ps_r4_cg_brightness,			-1.0f,	1.0f);
+	CMD4(CCC_Float,		"r4_cg_gamma",				&ps_r4_cg_gamma,				0.1f,	5.0f);
+	CMD4(CCC_Float,		"r4_hdr10_ui_saturation",	&ps_r4_hdr10_ui_saturation,		-1.0f,	1.0f);
+	CMD4(CCC_Float,		"r4_hdr10_light_expansion",	&ps_r4_hdr10_light_expansion,	0.0f,	4.0f);
+	CMD4(CCC_Float,		"r4_hdr10_particle_expansion", &ps_r4_hdr10_particle_expansion, 0.0f, 4.0f);
 	CMD4(CCC_Float,		"r2_parallax_range",	&ps_r2_df_parallax_range,	5.0f,	175.0f	);
 
 	CMD4(CCC_Float,		"r2_slight_fade",		&ps_r2_slight_fade,			.2f,	1.f		);

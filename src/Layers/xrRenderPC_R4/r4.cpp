@@ -129,6 +129,47 @@ static class cl_tex_contrast : public R_constant_setup {
   }
 } binder_tex_contrast;
 
+// OWA: tonemapping pipeline parameters (uniform slot names kept identical to
+// OW for diff-ability). hdr10_on binds 0 until the HDR output phase wires the
+// swapchain - the SDR spline branch is active, the HDR branch dormant.
+static class cl_hdr10_parameters1 : public R_constant_setup {
+	virtual void setup(R_constant* C)
+	{
+		RCache.set_c(C, ps_r4_hdr10_whitepoint_nits,
+			ps_r4_hdr10_ui_nits / ps_r4_hdr10_whitepoint_nits, 0.0f, 0.0f);
+	}
+} binder_hdr10_parameters1;
+
+static class cl_hdr10_parameters2 : public R_constant_setup {
+	virtual void setup(R_constant* C)
+	{
+		RCache.set_c(C, (float)ps_r4_hdr10_colorspace, ps_r4_hdr10_pda_intensity, ps_r4_hdr10_chroma_correction, 0.0f);
+	}
+} binder_hdr10_parameters2;
+
+// Color grading (SDR + HDR)
+static class cl_cg_parameters1 : public R_constant_setup {
+	virtual void setup(R_constant* C)
+	{
+		RCache.set_c(C, ps_r4_cg_exposure, ps_r4_cg_contrast + 1.0f, ps_r4_cg_saturation + 1.0f, ps_r4_cg_contrast_middle_gray);
+	}
+} binder_cg_parameters1;
+
+static class cl_cg_parameters2 : public R_constant_setup {
+	virtual void setup(R_constant* C)
+	{
+		RCache.set_c(C, ps_r4_cg_brightness, 1.0f / _max(EPS_S, ps_r4_cg_gamma), 0.0f, 0.0f);
+	}
+} binder_cg_parameters2;
+
+// Light expansion tuning (knee is automatic per BT.2408)
+static class cl_hdr10_parameters11 : public R_constant_setup {
+	virtual void setup(R_constant* C)
+	{
+		RCache.set_c(C, 0.0f, ps_r4_hdr10_light_expansion, ps_r4_hdr10_particle_expansion, 0.0f);
+	}
+} binder_hdr10_parameters11;
+
 static class cl_water_intensity : public R_constant_setup {
   virtual void setup(R_constant *C) {
     CEnvDescriptor &E = *g_pGamePersistent->Environment().CurrentEnv;
@@ -242,6 +283,16 @@ void CRender::create() {
       "hemi_parameters", &binder_hemi_parameters);
   dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
       "tex_contrast", &binder_tex_contrast);
+  dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
+      "hdr10_parameters1", &binder_hdr10_parameters1);
+  dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
+      "hdr10_parameters2", &binder_hdr10_parameters2);
+  dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
+      "hdr10_parameters11", &binder_hdr10_parameters11);
+  dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
+      "cg_parameters1", &binder_cg_parameters1);
+  dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
+      "cg_parameters2", &binder_cg_parameters2);
 
   c_lmaterial = "L_material";
   c_sbase = "s_base";

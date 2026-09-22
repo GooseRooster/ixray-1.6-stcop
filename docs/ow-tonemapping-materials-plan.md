@@ -129,33 +129,63 @@ Proton). Hot zones registered.
 
 ### Phase 3 — Tonemapping pipeline
 
-**Scope:** new file + chain restructure + engine stage merge.
+**Status: implemented (2026-09-21).** Scope: new file + chain restructure +
+engine binders.
 
-- New `tonemapping.hlsli` (ported from OW `hdr10.h`, renamed):
-  `HermiteSplineRolloff` (BT.2408 knee), unified wrapper (Rec.709 luma +
-  maxRGB hybrid, Oklab saturation blend), `ApplyColorGrading` (LogC block),
-  `ExpandLight`/`ExpandSunLight` (incl. SDR 25% sun lift), light/particle
-  expansion. HDR/PQ branch present but dormant until Phase 5.
-- **End-of-chain tonemap**: `postprocess(.cm)` + `gamma_apply` merge into one
-  tonemapper stage (engine: `r4_rendertarget_phase_pp.cpp` /
-  `RenderTargetPhaseGamma.cpp`). `combine_2.ps.hlsl` loses `tonemap()`; bloom
-  compose stays until Phase 4 replaces it.
-- **Feature-compat audit (mandatory exit items)**:
-  - TAA reversible tonemapper pair (`taa_render.ps.hlsl:38/43`) — update to
-    match the new operator or restructure (H4).
-  - CAS, `saturation/vignette/chromatic_aberration`, postprocess-CM now run
-    pre-tonemap on HDR — audit assumptions per H3; minimal targeted edits.
-- **Exposure neutralized**: `r4_rendertarget_phase_luminance.cpp` scale → 1.0
-  (keep chain running); fix H8 dead clamp in `bloom_luminance_3.ps.hlsl`.
+- New `tonemapping.hlsli` (ported from OW `hdr10.h`, **all functions renamed
+  HDR-neutral**: `ApplyTonemap_World`, `ApplyTonemap_UI`, `HermiteSplineRolloff`,
+  `HermiteSplineUnified`, `HermiteSplineHDR`, `ApplyColorGrading`,
+  `ExpandLight`/`ExpandSunLight`/`ExpandLightPointSpot`, `Luminance_*`,
+  colorspace transforms). Uniform *slot* names (`hdr10_parameters*`,
+  `cg_parameters*`) kept identical to OW for cross-repo diff-ability —
+  documented in the file header. Colorspace matrices verbatim-verified.
+  HDR/PQ branch present but dormant (engine binds `hdr10_on = 0`) until Phase 5.
+- **End-of-chain tonemap**: `gamma_apply.ps.hlsl`'s body replaced by
+  `ApplyTonemap_World` + deband (the final-stage merge; the legacy
+  `rs_c_gamma/brightness/contrast` pass is superseded — engine `PhaseGammaApply`
+  untouched, now-unused bindings harmless). `combine_2.ps.hlsl` lost its
+  mid-chain `tonemap()` + `s_tonemap` sample; bloom compose stays until P4.
+  `postprocess(.cm)` sample saturates removed (pp runs pre-tonemap on HDR).
+- **Feature-compat audit results**:
+  - TAA reversible pair — **kept unchanged**: it is self-contained
+    (Lottes forward → resolve → inverse, self-cancelling, independent of the
+    display operator). H4 resolved without churn.
+  - CAS — **already self-inverse** (forward `×rcp(1+c)` per tap at
+    lines 9-20, restore `x/(1-x)` at :64, same reversible-Reinhard pattern as
+    TAA) — HDR-safe unmodified; runs pre-tonemap now (sharpening behavior in
+    compressed space, playtest note).
+  - `saturation/vignette/chromatic_aberration` — range-agnostic (no color
+    clamps; masks only) — no edits.
+  - postprocess-CM — kept (gameplay effects, pre-tonemap in OW too); its
+    1D-LUT coordinate uses clamp-addressed sampling — HDR-safe.
+- **Exposure neutralized**: `amount = 0` in
+  `r4_rendertarget_phase_luminance.cpp` (MiddleGray → neutral; scale = 1.0);
+  chain keeps running (`models_reflex_lens` HUD still reads it). H8 dead clamp
+  fixed (assigned).
 - Grading consolidation: our compile path skips `lut.dds` sampling and CGIM
-  (dormant, no deletion); CM postprocess kept (gameplay effects, pre-tonemap
-  in OW too).
-- Engine: `cg_parameters`/`tonemap_parameters` binders + `r4_cg_*` console
-  vars; **pure-2.2 linearization lives here** (H2 policy — no upstream
-  declamp).
-- Accum-side: `HDR10_Expand*` equivalents applied in accum shaders.
+  (dormant, no deletion); CM postprocess kept.
+- Engine: `hdr10_parameters1/2/11` + `cg_parameters1/2` binders registered
+  globally in `r4.cpp` (hdr10_on/pda bind 0 = SDR active / HDR dormant);
+  console: `r4_cg_*` (exposure/contrast/middle_gray/saturation/brightness/gamma),
+  `r4_hdr10_light_expansion`, `r4_hdr10_particle_expansion`, and the dormant
+  HDR set (`r4_hdr10_whitepoint_nits`, `_ui_nits`, `_colorspace`,
+  `_chroma_correction`, `_pda*`, `_ui_saturation`) — OW cvar names for config
+  compatibility. **Pure-2.2 linearization lives in `ApplyTonemap_World`**
+  (H2 policy — no upstream declamp).
+- Accum-side: `ExpandSunLight` in `accum_sun` (SDR 25% sun lift),
+  `ExpandLightPointSpot` in `accum_base`, `ExpandLight` on the sun-highlight
+  blend in `combine_1`; particle HDR expansion ported into `particle.ps.hlsl`
+  (dormant until P5).
 
-**Exit:** parity gate; A/B against OW SDR screenshots; compat audit signed off.
+**Exit:** parity gate PASS; A/B against OW SDR screenshots on the bench.
+- **Playtest note (P2 finding)**: omni/spot lights (lamps) show harsh
+  "blown-out flare" halos — the new direct specular feeds values >1.0 into the
+  old mid-chain Reinhard + `gamma_apply` clamp, which clips instead of
+  compressing. Expected pre-P3 state; the hermite spline's linear-knee
+  passthrough + rolloff is the fix. Verify lamps specifically after P3; if
+  still hot vs OW, retune via `def_gloss` (note: `r2_gloss_factor`/`L_spec` is
+  now inert for direct specular — the response protocol ignores
+  `Ldynamic_color.w`).
 
 ### Phase 4 — Kawase bloom
 
@@ -268,12 +298,12 @@ locked classification below.
 
 | Location | What | Action phase |
 |---|---|---|
-| `gamma_apply.ps.hlsl:17` | final LDR gate `saturate(c * grading)` | P3 (stage replaced by tonemapper) |
-| `gamma_apply.ps.hlsl:19` → `common_functions.hlsli:186` | `deband_color()` — `saturate(image)` pre-dither | P3 (final-stage restructure) |
-| `postprocess.ps.hlsl:12-13`, `postprocess_cm.ps.hlsl:16-17` | `saturate(s_baseN.Sample)` sample clamps | P3 (stage restructure) |
-| `taa_render.ps.hlsl:38/43` | Lottes reversible tonemapper pair | P3 (H4 — update to new operator) |
-| `contrast_adaptive_sharpening.ps.hlsl:42/60` | CAS amplitude calc + output clamp | P3 (CAS runs pre-tonemap after restructure) |
-| `bloom_luminance_3.ps.hlsl:55` | dead exposure clamp (result discarded — H8) | P3 (exposure neutralization) |
+| `gamma_apply.ps.hlsl:17` | final LDR gate `saturate(c * grading)` | **P3 done** — body replaced by `ApplyTonemap_World`; the only deliberate final clamp now lives inside the spline's SDR branch (`saturate(tonemapped)` before sRGB encode, as OW) |
+| `gamma_apply.ps.hlsl:19` → `common_functions.hlsli:186` | `deband_color()` — `saturate(image)` pre-dither | **P3 resolved** — now runs *post*-tonemap (final LDR stage), saturate harmless by construction |
+| `postprocess.ps.hlsl:12-13`, `postprocess_cm.ps.hlsl:16-17` | `saturate(s_baseN.Sample)` sample clamps | **P3 done** — removed (pp runs pre-tonemap on HDR) |
+| `taa_render.ps.hlsl:38/43` | Lottes reversible tonemapper pair | **P3 resolved** — kept unchanged (self-contained reversible pair, independent of the display operator) |
+| `contrast_adaptive_sharpening.ps.hlsl:42/60` | CAS amplitude calc + output clamp | **P3 reclassified G** — CAS is self-inverse (forward per-tap `×rcp(1+c)`, restore `x/(1-x)`); HDR-safe unmodified |
+| `bloom_luminance_3.ps.hlsl:55` | dead exposure clamp (result discarded — H8) | **P3 done** — clamp now assigned |
 | engine swapchain path | presentation clamps HDR→B8G8R8A8 | P5 (HDR swapchain) |
 
 ### G-class (verified guards — abbreviated register, all verified in audit)

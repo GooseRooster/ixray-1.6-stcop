@@ -52,7 +52,9 @@ float4 main(p_filter I) : SV_Target
     float scale_prev = s_tonemap.Sample(smp_nofilter, I.Tex0.xy).x;
     float rvalue = lerp(scale_prev, scale, MiddleGray.w);
 
-    clamp(rvalue, 1.f / 128.f, 20.0f);
+    // OWA: H8 fix - the clamp result was never assigned upstream (dead code);
+    // actually apply the enforced exposure range now.
+    rvalue = clamp(rvalue, 1.f / 128.f, 20.0f);
 
     return rvalue;
 }

@@ -1,6 +1,7 @@
 #include "common.hlsli"
 #include "shadow.hlsli"
 
+#include "tonemapping.hlsli"
 #include "metalic_roughness_light.hlsli"
 #include "ScreenSpaceContactShadows.hlsl"
 
@@ -64,8 +65,10 @@ float4 main(p_volume I, float4 pos2d : SV_POSITION) : SV_Target
 	Lightmap = PushGamma(Lightmap);
 
     // OWA: rgb = light color × diffuse response × shadow × cookie (albedo at
-    // combine); a = specular response × shadow × cookie alpha.
-    return float4(Ldynamic_color.rgb * light.rgb * Shadow * Lightmap.rgb, light.a * Shadow.x * Lightmap.a);
+    // combine; HDR point/spot light expansion applied); a = specular response
+    // × shadow × cookie alpha.
+    float3 expanded_color = ExpandLightPointSpot(Ldynamic_color.rgb);
+    return float4(expanded_color * light.rgb * Shadow * Lightmap.rgb, light.a * Shadow.x * Lightmap.a);
 }
 
 

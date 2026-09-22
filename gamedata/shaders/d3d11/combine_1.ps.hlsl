@@ -8,6 +8,7 @@
 #include "metalic_roughness_light.hlsli"
 #include "metalic_roughness_ambient.hlsli"
 #include "reflections.hlsli"
+#include "tonemapping.hlsli"
 
 Texture2D<float> s_occ;
 
@@ -80,12 +81,14 @@ float4 main(_input I) : SV_Target
     float4 light = float4(Light.rgb + hdiffuse + sun_static.rgb, Light.a + sun_static.a);
     float4 C = float4(albedo, O.Roughness) * light;
 
-    // OWA: Direct specular blends toward the raw sun color.
+    // OWA: Direct specular blends toward the light-expanded sun color.
     // Light.rgb bakes in the material LUT diffuse response which dampens
     // specular on rough surfaces. Blending 35% toward the pure sun color gives
-    // highlights their proper chromatic intensity. (Phase 3 swaps in the
-    // light-expanded sun color.)
-    float3 owa_spec_light = lerp(Light.rgb, Ldynamic_color.rgb, 0.35f);
+    // highlights their proper chromatic intensity, especially at grazing
+    // angles where diffuse falls off fast. Shadow safety: C.w (= gloss ×
+    // specular response) is zero in shadow from the accumulator, so the whole
+    // term collapses to zero regardless of owa_spec_light.
+    float3 owa_spec_light = lerp(Light.rgb, ExpandLight(Ldynamic_color.rgb), 0.35f);
     float3 spec = hspecular * C.rgb + C.w * lerp(C.rgb, 1.0h, 0.5h) * owa_spec_light;
 
     float3 Color = C.rgb + spec;

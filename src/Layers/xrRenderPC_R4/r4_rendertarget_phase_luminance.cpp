@@ -117,7 +117,13 @@ void	CRenderTarget::phase_luminance()
 		RCache.Vertex.Unlock		(4,g_bloom_filter->vb_stride);
 
 		f_luminance_adapt			= .9f*f_luminance_adapt + .1f*Device.fTimeDelta*ps_r2_tonemap_adaptation;
-		float		amount			= ps_r2_ls_flags.test(R2FLAG_TONEMAP)?ps_r2_tonemap_amount:0;
+		// OWA: r2_tonemap (legacy auto-exposure) is now disabled (Phase 3).
+		// The hermite spline tonemapper in ApplyTonemap_World() handles all
+		// highlight compression uniformly for both SDR and HDR paths. Setting
+		// amount to 0 forces MiddleGray to neutral (1, 0, 1) - the scale
+		// resolves to 1.0. The luminance chain keeps running (models_reflex
+		// lens HUD and future phases may reuse it).
+		float		amount			= 0;
 		Fvector3	_none, _full, _result;
 				_none.set			(1,							0,		1						);
 				_full.set			(ps_r2_tonemap_middlegray,	1.f,	ps_r2_tonemap_low_lum	);

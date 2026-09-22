@@ -13,3 +13,11 @@
 {"pattern": "gamedata/shaders/d3d11/combine_1.ps.hlsl", "reason": "OW port P2: owa_hemisphere + tex contrast + wetness + OW albedo composition", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
 {"pattern": "gamedata/shaders/d3d11/accum_*.ps.hlsl", "reason": "OW port P2: accum protocol — rgb=response×color×shadow, a=spec×shadow", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
 {"pattern": "gamedata/shaders/d3d11/common_defines.hlsli", "reason": "OW port P2: def_gloss 24/255 (SoC glossy)", "added_via": "port-ow-phase-2", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/tonemapping.hlsli", "reason": "OW port P3: tonemapping pipeline (renamed hdr10.h port; spline + LogC grading + expansion)", "added_via": "port-ow-phase-3", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/gamma_apply.ps.hlsl", "reason": "OW port P3: final stage replaced by ApplyTonemap_World + deband", "added_via": "port-ow-phase-3", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/combine_2.ps.hlsl", "reason": "OW port P3: mid-chain tonemap removed (spline at final quad)", "added_via": "port-ow-phase-3", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/postprocess*.ps.hlsl", "reason": "OW port P3: sample saturates removed (pre-tonemap HDR)", "added_via": "port-ow-phase-3", "added_date": "2026-09-21"}
+{"pattern": "src/Layers/xrRenderPC_R4/r4_rendertarget_phase_luminance.cpp", "reason": "OW port P3: auto-exposure neutralized (amount=0)", "added_via": "port-ow-phase-3", "added_date": "2026-09-21"}
+{"pattern": "src/Layers/xrRender/xrRender_console.*", "reason": "OW port P3: r4_cg_* + dormant r4_hdr10_* cvars", "added_via": "port-ow-phase-3", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/particle.ps.hlsl", "reason": "OW port P3: HDR particle expansion port (dormant until P5)", "added_via": "port-ow-phase-3", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/bloom_luminance_3.ps.hlsl", "reason": "OW port P3: H8 dead clamp fixed", "added_via": "port-ow-phase-3", "added_date": "2026-09-21"}
