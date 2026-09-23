@@ -670,3 +670,89 @@ Scope: swapchain + UI + collateral (H7).
   `options_lighting_settings.script`, `options_video_advanced_main.script`,
   `owa_graphics_init.script`
 - `xray-monolith:` engine: `src/Layers/xrRenderPC_R4/{r4_rendertarget.cpp,r4_rendertarget_phase_luminance.cpp,r4.cpp}`, `src/Layers/xrRender/{Blender_Recorder_StandartBinding.cpp,xrRender_console.cpp}`, `src/Layers/xrRenderDX10/dx10HW.cpp`, `src/xrEngine/Environment_misc.cpp`; docs: `PROJECT.md`, `docs/graphics-simplification-{spec,plan}.md`
+
+---
+
+## 10. OWA material detection re-evaluation (2026-09-23)
+
+Re-verification of the P2 material-detection code (`owa_material.hlsli`) directly
+against IX-Ray sources + an empirical census of all 10,312 `.thm` files in
+`oldworld:` `_GAME/gamedata/textures/` (binary chunk parse of
+`THM_CHUNK_MATERIAL` = material enum + material_weight, gbuffer value =
+`(mtl+0.5)/4`).
+
+### 10.1 What was verified correct
+
+- **The transform exists and reaches the gbuffer.** `r4.h:199`
+  (`set_material(..., (mtl+.5f)/4.f)`) binds uniform `L_material`
+  (`shared/common.hlsli:21`); `mtl = T->m_material` =
+  `tp.material + tp.material_weight` (`TextureDescrManager.cpp:135`, material
+  enum 0–4 in `ETextureParams.h:48-56`). Under `USE_LEGACY_LIGHT`,
+  `deffer_base.ps.hlsl:47`, `deffer_impl.ps.hlsl:121`, `forward_base.ps.hlsl:56`
+  and `lod.ps.hlsl:48` copy `L_material.w` into the gbuffer `Material.x`, which
+  reads back as `O.Metalness` (`metalic_roughness_base.hlsli:182/221`).
+- **Baselines hold for weight-0 THMs**: 0.125 / 0.375 / 0.625 / 0.875. The
+  `s_material` LUT is 4-slice (`r__types.h:87`, built in
+  `r4_rendertarget.cpp:766-837` with slices OrenNayar/Blinn/Phong/Metal) and the
+  `(mtl+0.5)/4` encoding lands each baseline mid-slice — the LUT coordinate is
+  designed for exactly this value.
+- **Metal threshold 0.5 catches Phong_Metal** (baseline 0.625). Full census:
+  ~210 mat=2 THMs at 0.625–0.875 → full metal. `owa_metalness.h` in OW carries
+  the identical constants, so OW parity holds for the metal ramp.
+- **Values above 1.0 are real and survive**: mat=3 w≥0.5 → gbuffer 1.0–1.125
+  (355 THMs; 207 at 1.075). `rt_Surface` is FP16
+  (`r4_rendertarget.cpp:503`), so the round-trip preserves them.
+
+### 10.2 What did NOT hold (empirical)
+
+- **Dominant values are not the four baselines.** Real distribution: 0.375
+  (Blin_Phong default — 7,752 THMs, most of the world), 0.25 (OrenNayar w=0.5 —
+  1,341), 0.5 (Blin_Phong w=0.5 — 412), 0.875 (~210).
+- **`OWA_MAT_TERRAIN = 0.95` matches zero textures** (window 0.91–0.99 empty).
+  The value is OW's *writer* constant: its own `deffer_terrain_*.ps` shaders
+  hardcode `ms = 0.95f` (`deffer_terrain_mid_flat.ps:67`). IX-Ray has no terrain
+  shaders — terrain flows through `deffer_base` with THM values. Porting the
+  reader without the writer = dead code.
+- **`OWA_MAT_FLORA = 0.15` is a false-positive magnet, and misses real flora.**
+  Window 0.11–0.19 catches 64 THMs, of which 40+ are actor faces (`act_face_*`)
+  plus props/terrain statics/fire FX; actual flora textures
+  (`det_*_grass`, `grnd_grass`, most `trees_*`) are Blin_Phong default → 0.375,
+  i.e. outside the window. In OW, 0.15 is written by its dedicated
+  `deffer_tree_*`/`deffer_grass` shaders (`ms = 0.15f` hardcoded) — again a
+  writer value with no IX-Ray producer.
+- **Consequence**: `owa_is_flora(O.Metalness)` at `accum_base.ps.hlsl:21`
+  normal-leaned character faces under every point/spot lamp and never fired on
+  grass/trees.
+- **Metal-ramp collateral (kept, OW-identical)**: 36 THMs land at partial
+  metalness — dominated by `trees_bark*` (Blin_Phong w=0.8 → 0.575 → 60%
+  metal), plus `veh_sv_t90_*` (w=0.75 → 50%) and `wpn_pkm*` (w=0.85 → 70%).
+  Same THMs + same `owa_metalness.h` in OW → same behavior there; flagged for
+  the OW A/B rather than "fixed".
+
+### 10.3 The IX-Ray-native flora signal
+
+IX-Ray already flags flora in the gbuffer: `deffer_base.ps.hlsl:62-65` writes
+`M.SSS = 1.0f` when **both** `USE_AREF` and `USE_TREEWAVE` are defined. The
+blenders set those for tree branches (`Blender_tree.cpp:146+` with
+`oBlend.value` aref, explicit `USE_AREF` at :162/:202) and HQ grass details
+(`Blender_detail_still.cpp:99/126` `USE_TREEWAVE` + `uber_deffer(..., aref=true)`
+→ `USE_AREF` via `uber_deffer.cpp:66`). The channel reads back as `O.SSS`
+(`Color.w`), and IX-Ray's own flora SSS already consumes it
+(`accum_sun.ps.hlsl:21`). Caveats: LQ grass (`SE_R2_NORMAL_LQ`) and LOD grass
+(`details_lod.lua` → `lod`) carry no flag; distance fade is inherent. Under
+`USE_R2_STATIC_SUN` the channel carries the static-sun factor instead
+(`GbufferPack` override), so the flora test must be mode-gated.
+
+### 10.4 Resolution (applied)
+
+- `owa_is_flora` / `owa_skip_fresnel` now key off `O.SSS` with an internal
+  `USE_R2_STATIC_SUN` guard (returns false in that mode — channel is the sun
+  factor). `OWA_MAT_FLORA`/`OWA_MAT_TERRAIN` and the material-ID flora test
+  removed.
+- `DirectLightResponse` takes a trailing `FloraSignal` param (default 0.0f for
+  the dormant wrapper); `accum_base`, `accum_sun`, `combine_1` (static-sun call)
+  pass `O.SSS`.
+- `owa_hemisphere` takes `sss`; fresnel skip + wet-sheen porosity (flora forced
+  fully porous) use it. Material-ID mip heuristics kept — they behave sanely
+  against the real distribution including >1.0 values.
+- Metal ramp unchanged (0.5→0.625) for OW parity; bark quirk noted above.

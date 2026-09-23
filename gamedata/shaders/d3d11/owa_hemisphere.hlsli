@@ -102,7 +102,10 @@ float3 OWA_SunChrominanceSplit(float3 chroma, float3 nw, float3 sh_dir_ws, float
 
 //=============================================================================
 // OWA: Hemisphere lighting (classic deferred style)
-// m     - material id (gbuffer)
+// m     - material LUT coordinate (gbuffer Metalness channel: THM material
+//         value (mtl+0.5)/4, range 0.125-1.125 with weight)
+// sss   - gbuffer SSS channel (1.0 for engine-flagged flora; carries the
+//         static-sun factor under USE_R2_STATIC_SUN - owa_is_flora guards)
 // h     - hemispheric light factor
 // gloss - surface gloss
 // Pnt   - view-space position
@@ -111,7 +114,7 @@ float3 OWA_SunChrominanceSplit(float3 chroma, float3 nw, float3 sh_dir_ws, float
 void owa_hemisphere
 (
 	out float3 hdiffuse, out float3 hspecular,
-	float m, float h, float gloss, float3 Pnt, float3 normal
+	float m, float h, float gloss, float3 Pnt, float3 normal, float sss
 )
 {
 	normal = normalize(normal);
@@ -137,8 +140,11 @@ void owa_hemisphere
 	float4	light	= s_material.SampleLevel( smp_material, float3( hscale, hspec, m ), 0 ).xxxy;
 
 // diffuse color
-	// OWA: Material-based cubemap blur for diffuse hemisphere lighting
-	// Material IDs after engine transform: 0→~0.125, 1→~0.375, 2→~0.625, 3→~0.875
+	// OWA: Material-based cubemap blur for diffuse hemisphere lighting.
+	// The LUT coordinate m is the THM material value (baselines 0.125/0.375/
+	// 0.625/0.875, shifted up by material_weight, live range up to 1.125):
+	// everything below 0.5 (the two diffuse-ish clusters) uses the blurriest
+	// diffuse mip, metallic baselines sharpen toward mip 0.
 	float diff_mip = (m < 0.5) ? 7.0 : lerp(4.0, 0.0, saturate((m - 0.5) * 4.0));
 
 	float3	e0d		= env_s0.SampleLevel( smp_rtlinear, nw, diff_mip );
@@ -186,7 +192,7 @@ void owa_hemisphere
 	hspecular = env_s * light.w * wet_gloss;
 
 	// OWA: Metalness fresnel - adds Schlick fresnel for metallic materials
-	if (!owa_skip_fresnel(m))
+	if (!owa_skip_fresnel(sss))
 	{
 		float metalness = owa_calc_metalness(m);
 		float NdotV = saturate(dot(nw, -v2Pnt));
@@ -213,7 +219,10 @@ void owa_hemisphere
 		float grazing = pow(1.0 - NdotV_wet, 3.0);
 
 		// Scale by wetness and material porosity (porous materials absorb more water = weaker sheen)
+		// OWA: Engine-flagged flora is fully porous (no water film on foliage)
 		float porosity = saturate(1.0 - m * 1.5);
+		if (owa_is_flora(sss))
+			porosity = 1.0;
 		float sheen_strength = wetness * (1.0 - porosity * 0.3);
 
 		float3 e0s_wet = env_s0.SampleLevel(smp_rtlinear, vreflect, wet_rough_aa * 6.0);

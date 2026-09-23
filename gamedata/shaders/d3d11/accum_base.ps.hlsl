@@ -17,8 +17,11 @@ float4 main(p_volume I, float4 pos2d : SV_POSITION) : SV_Target
     IXrayGbuffer O;
     GbufferUnpack(tcProj, pos2d.xy, O);
 
-    // OWA: Flora fix always on - align normal to light, soften gloss
-    if (owa_is_flora(O.Metalness))
+    // OWA: Flora fix always on - align normal to light, soften gloss.
+    // Flora flag is the engine's own gbuffer SSS marker (USE_AREF+USE_TREEWAVE
+    // tree branches and HQ grass); the material-ID channel cannot identify
+    // flora in this engine (its dominant values are diffuse/plastic THMs).
+    if (owa_is_flora(O.SSS))
     {
         O.Normal = lerp(O.Normal, -normalize(O.Point.xyz - Ldynamic_pos.xyz), 0.5f);
         O.Roughness *= 0.5f;
@@ -31,7 +34,7 @@ float4 main(p_volume I, float4 pos2d : SV_POSITION) : SV_Target
     // OWA: Direct lighting as material response tuple (rgb = LUT diffuse
     // response, a = specular response + fresnel). Albedo/gloss applied at
     // combine stage.
-    float4 light = DirectLightResponse(Ldynamic_color, LightDirection, O.Normal, O.View.xyz, O.Metalness, O.Roughness, false);
+    float4 light = DirectLightResponse(Ldynamic_color, LightDirection, O.Normal, O.View.xyz, O.Metalness, O.Roughness, false, O.SSS);
 
     // OWA: Soft sqrt attenuation + seam blend (replaces vanilla q-linear).
     float att = ComputeLightAttention(Point.xyz - Ldynamic_pos.xyz, Ldynamic_pos.w, saturate(-dot(O.Normal, LightDirection)));

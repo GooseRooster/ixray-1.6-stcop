@@ -2,29 +2,33 @@
 #define OWA_MATERIAL_H_INCLUDED
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// OWA: Unified metalness detection.
+// OWA: Material classification for the IX-Ray GBuffer.
 //
-// Engine transforms THM material IDs via: (mtl + 0.5) / 4.0
-// After GBuffer round-trip, actual shader values are:
-//   Material 0 (OrenNayar_Blin)  → ~0.125 (diffuse - concrete, fabric, wood, skin)
-//   Material 1 (Blin_Phong)      → ~0.375 (glossy plastic, polished wood)
-//   Material 2 (Phong_Metal)     → ~0.625 (metallic - gun barrels, pipes)
-//   Material 3 (Metal_OrenNayar) → ~0.875 (rough metallic - worn metal)
+// Under USE_LEGACY_LIGHT the gbuffer "Metalness" channel (s_surface.x) carries the
+// texture THM material value, written by deffer_base/deffer_impl/lod/forward as
+// L_material.w. The engine computes that as (mtl + 0.5) / 4, where
+// mtl = THM material enum (0=OrenNayar_Blin, 1=Blin_Phong, 2=Phong_Metal,
+// 3=Metal_OrenNayar) + THM material_weight (0-1):
+//   Material 0 (OrenNayar_Blin)  → 0.125 baseline (diffuse - concrete, fabric, wood, skin)
+//   Material 1 (Blin_Phong)      → 0.375 baseline (glossy plastic, polished wood)
+//   Material 2 (Phong_Metal)     → 0.625 baseline (metallic - gun barrels, pipes)
+//   Material 3 (Metal_OrenNayar) → 0.875 baseline (rough metallic - worn metal)
+// material_weight shifts values upward, so the live range is [0.125, 1.125]
+// (values above 1.0 survive because rt_Surface is FP16). The dominant clusters
+// in real game data are 0.375 (Blin_Phong default) and 0.25 (OrenNayar w=0.5).
 //
-// Detection: Pure material-based - if THM says metal, it's metal
+// Flora does NOT have a material value here: the engine flags flora (tree
+// branches and HQ grass details, via USE_AREF + USE_TREEWAVE) by writing
+// M.SSS = 1 into the gbuffer Color alpha, which reads back as O.SSS.
+// (Under USE_R2_STATIC_SUN that channel carries the static-sun factor instead,
+// so the flora test is disabled there.)
+//
+// Detection: metal from the material value; flora from the SSS flag.
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // Material ID threshold - below this is definitely not metal
 // Material 2 (Phong_Metal) is ~0.625, so 0.5 catches it correctly
 #define OWA_METAL_MAT_THRESHOLD 0.5f
-
-// Flora and terrain material IDs for exclusion
-// Flora uses Material 0 but with special flag, ends up around 0.15
-// (matches the shared material ID layout)
-#define OWA_MAT_FLORA 0.15f
-#define OWA_MAT_FLORA_EPSILON 0.04f
-#define OWA_MAT_TERRAIN 0.95f
-#define OWA_MAT_TERRAIN_EPSILON 0.04f
 
 // Fresnel intensity controls (conservative values)
 #define OWA_FRESNEL_DIELECTRIC 0.01f   // Base fresnel for non-metals
@@ -35,13 +39,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 float owa_calc_metalness(float material_id)
 {
-	// Flora and terrain have special shader handling - exclude them
-	if (abs(material_id - OWA_MAT_FLORA) < OWA_MAT_FLORA_EPSILON)
-		return 0.0f;
-	if (abs(material_id - OWA_MAT_TERRAIN) < OWA_MAT_TERRAIN_EPSILON)
-		return 0.0f;
-
-	// Soft ramp from threshold (0.5) to Phong_Metal baseline (0.625)
+	// Soft ramp from threshold (0.5) to Phong_Metal baseline (0.625).
+	// Values above 1.0 (material_weight-heavy Metal_OrenNayar) saturate.
 	float mat_lower = OWA_METAL_MAT_THRESHOLD;
 	float mat_upper = 0.625f;
 	return saturate((material_id - mat_lower) / (mat_upper - mat_lower));
@@ -102,23 +101,28 @@ float specAA_rough_env(float3 N, float rough)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Check if material is flora (for SSS treatment)
+// Check if material is flora (for SSS treatment).
+// IX-Ray-native signal: deffer_base writes M.SSS=1 into the gbuffer for
+// USE_AREF + USE_TREEWAVE geometry (tree branches + HQ grass details).
+// Under USE_R2_STATIC_SUN the same channel carries the static-sun factor,
+// so the test is disabled in that mode.
 //////////////////////////////////////////////////////////////////////////////////////////
-bool owa_is_flora(float material_id)
+bool owa_is_flora(float gbuffer_sss)
 {
-	return abs(material_id - OWA_MAT_FLORA) < OWA_MAT_FLORA_EPSILON;
+#ifndef USE_R2_STATIC_SUN
+	return gbuffer_sss > 0.0f;
+#else
+	return false;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Check if material should skip fresnel (flora, terrain, or other special materials)
+// Check if material should skip fresnel (flora - the SSS channel is the only
+// reliable flag; no material-ID slot distinguishes flora in this engine).
 //////////////////////////////////////////////////////////////////////////////////////////
-bool owa_skip_fresnel(float material_id)
+bool owa_skip_fresnel(float gbuffer_sss)
 {
-	if (abs(material_id - OWA_MAT_FLORA) < OWA_MAT_FLORA_EPSILON)
-		return true;
-	if (abs(material_id - OWA_MAT_TERRAIN) < OWA_MAT_TERRAIN_EPSILON)
-		return true;
-	return false;
+	return owa_is_flora(gbuffer_sss);
 }
 
 #endif // OWA_MATERIAL_H_INCLUDED

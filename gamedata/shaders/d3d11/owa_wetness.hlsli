@@ -22,11 +22,11 @@
 // absorb water into their microstructure. Non-porous materials (metal, plastic)
 // bead water on the surface and show minimal darkening.
 //
-// Material ID mapping (after engine transform):
-//   0 = OrenNayar (~0.125)  - organic/fabric/skin - HIGH porosity
-//   1 = Blinn_Phong (~0.375) - plastic/hard surfaces - MEDIUM porosity
-//   2 = Phong_Metal (~0.625) - metal - LOW porosity
-//   3 = Metal_OrenNayar (~0.875) - rough metal - LOW porosity
+// Material ID mapping (after engine transform - see owa_material.hlsli):
+// THM material enum (0=OrenNayar, 1=Blin_Phong, 2=Phong_Metal,
+// 3=Metal_OrenNayar) + material_weight, encoded as (mtl+0.5)/4 - baselines
+// 0.125/0.375/0.625/0.875, live range [0.125, 1.125]. Flora carries no
+// material-ID marker (it is flagged via the gbuffer SSS channel).
 //
 // Returns: multiplier for albedo (1.0 = no change, <1.0 = darker)
 //=============================================================================

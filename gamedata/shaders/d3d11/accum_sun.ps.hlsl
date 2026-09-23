@@ -38,7 +38,7 @@ float4 main(v2p_volume I) : SV_Target
     // OWA: Direct lighting as material response tuple (rgb = LUT diffuse
     // response, a = specular response + fresnel). Terminator contrast applies
     // inside (directional). Albedo/gloss are applied at combine stage.
-    float4 light = DirectLightResponse(Ldynamic_color, Ldynamic_dir.xyz, O.Normal, O.View.xyz, O.Metalness, O.Roughness, true);
+    float4 light = DirectLightResponse(Ldynamic_color, Ldynamic_dir.xyz, O.Normal, O.View.xyz, O.Metalness, O.Roughness, true, O.SSS);
     float3 sss = SimpleTranslucencyResponse(Ldynamic_dir.xyz, O.Normal) * O.SSS;
     // OWA: Apply sun expansion (SDR: gentle 25% lift; HDR: full range expansion)
     float3 LitColor = ExpandSunLight(Ldynamic_color.rgb) * (light.rgb + sss);

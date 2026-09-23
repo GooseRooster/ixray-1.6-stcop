@@ -48,12 +48,14 @@ float4 main(_input I) : SV_Target
 #else
     // OWA: Hemisphere lighting model
     float3 hdiffuse, hspecular;
-    owa_hemisphere(hdiffuse, hspecular, O.Metalness, O.Hemi, O.Roughness, O.Point.xyz, O.Normal);
+    owa_hemisphere(hdiffuse, hspecular, O.Metalness, O.Hemi, O.Roughness, O.Point.xyz, O.Normal, O.SSS);
 
     // OWA: Static sun - material response tuple (directional), scaled by SSS mask.
+    // Under static sun the SSS channel carries the static-sun factor, so the
+    // flora helpers inside owa_material disable the flora test in that mode.
     float4 sun_static = 0.0f;
     #ifdef USE_R2_STATIC_SUN
-        float4 sun_response = DirectLightResponse(Ldynamic_color, Ldynamic_dir.xyz, O.Normal, O.View.xyz, O.Metalness, O.Roughness, true);
+        float4 sun_response = DirectLightResponse(Ldynamic_color, Ldynamic_dir.xyz, O.Normal, O.View.xyz, O.Metalness, O.Roughness, true, O.SSS);
         sun_static = Ldynamic_color * sun_response * O.SSS;
     #endif
 

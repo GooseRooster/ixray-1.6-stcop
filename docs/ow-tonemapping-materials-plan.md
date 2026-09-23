@@ -111,7 +111,10 @@ Delivered:
   land).
 - OW sqrt point-light attenuation + NdotL seam blend in
   `ComputeLightAttention` (now takes NdotL; `accum_base.ps.hlsl` call site).
-- OW's flora fix in `accum_base.ps.hlsl` (normal-lean toward light, gloss×0.5).
+- OW's flora fix in `accum_base.ps.hlsl` (normal-lean toward light, gloss×0.5)
+  — **re-grounded in P3.7**: flora detection now uses IX-Ray's native gbuffer
+  SSS flag, not the material-ID window (the P2-era material-ID test misfired;
+  see P3.7 + research doc §10).
 - `owa_hemisphere` in `combine_1`: no-normal hscale, luminance/chrominance
   decoupling, `hemi_parameters.x` vibrance, material-based cube mips,
   SunChrominanceSplit (**SH direction stubbed to zero — wired at P8/DIL**),
@@ -273,6 +276,52 @@ needs them.
      old `max(0.5)` floor instead → net ×0.24 wet / ×0.47 dry at full rain
      vs OW's ×0.24 / ×0.71. The mask (low-res rain shadow map +
      `saturate(O.Hemi*10)` gate) is byte-identical in OW.
+
+### Phase 3.7 — OWA material detection re-evaluation (2026-09-23)
+
+Re-verification of the P2 material-detection assumptions directly against
+IX-Ray + a census of all 10,312 `.thm` files in the OW `_GAME` texture tree.
+Evidence and full findings live in the research doc §10; verdicts:
+
+- **Held**: the `(mtl+0.5)/4` THM transform and its gbuffer delivery
+  (`L_material.w` → `Material.x` under `USE_LEGACY_LIGHT`); the four
+  weight-0 baselines; the 0.5→0.625 metal ramp catching Phong_Metal (kept,
+  OW-identical); FP16 `rt_Surface` preserving the 355 THMs that produce
+  gbuffer values 1.0–1.125 (mat=3 w≥0.5).
+- **Overturned**: `OWA_MAT_FLORA = 0.15` (matches actor faces, misses real
+  flora — the value is OW's *writer* constant from its dedicated
+  `deffer_tree_*`/`deffer_grass` shaders, which this engine does not have)
+  and `OWA_MAT_TERRAIN = 0.95` (matches zero textures — same writer/reader
+  mismatch; dead code).
+- **IX-Ray-native flora signal found**: `deffer_base` writes `M.SSS=1` for
+  `USE_AREF`+`USE_TREEWAVE` geometry (tree branches + HQ grass details), read
+  back as `O.SSS` and already consumed by `accum_sun`'s flora translucency.
+  Mode-gated off under `USE_R2_STATIC_SUN` (channel carries the static-sun
+  factor there).
+
+**Changes (shader-only):**
+- `owa_material.hlsli`: flora test now keys off the gbuffer SSS channel
+  (`owa_is_flora(sss)`, internal static-sun guard); `OWA_MAT_FLORA`/
+  `OWA_MAT_TERRAIN` removed; header comment rewritten to the verified
+  encoding (THM enum + weight, live range [0.125, 1.125], dominant clusters).
+- `DirectLightResponse` gained a trailing `FloraSignal` param (default 0 for
+  the dormant wrapper); `accum_base`, `accum_sun`, and `combine_1`'s
+  static-sun call pass `O.SSS`.
+- `owa_hemisphere` gained an `sss` param: fresnel skip + wet-sheen porosity
+  (flora forced fully porous) use it; material-ID cubemap-mip heuristics
+  unchanged (verified sane against the real distribution incl. >1.0).
+- `accum_base` flora fix condition: `owa_is_flora(O.SSS)` (was
+  `owa_is_flora(O.Metalness)` — the face false-positive + flora-miss).
+- `owa_wetness.hlsli` dormant helpers: comment block corrected (no code
+  change; darkening helpers stay dormant per P3.6).
+
+**Known quirk kept (OW-identical)**: tree-bark THMs (Blin_Phong w=0.8 →
+0.575) land at ~60% metalness in the fresnel ramp — same in OW (same THMs,
+same constants); playtest flag for the OW A/B, not a divergence fix.
+
+**Exit:** parity gate; playtest checklist — actors under lamps (no
+normal-lean), tree/grass flora fix firing (HQ grass + tree branches; LQ/LOD
+grass inherently unflagged), terrain unaffected, bark fresnel sanity vs OW.
 
 ### Phase 4 — Kawase bloom
 

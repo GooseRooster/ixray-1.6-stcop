@@ -55,7 +55,9 @@ float3 FresnelSchlick(float3 F, float NdotV)
 // a   = LUT specular response + Schlick metalness fresnel boost
 // The accumulator stores rgb=diffuse response, a=specular response; albedo and
 // gloss are applied once at combine stage.
-float4 DirectLightResponse(float4 Radiance, float3 Light, float3 Normal, float3 View, float Metalness, float Roughness, const bool Directional)
+// FloraSignal: the gbuffer SSS flora marker (0 when unavailable - e.g. under
+// static sun the channel carries the static-sun factor instead).
+float4 DirectLightResponse(float4 Radiance, float3 Light, float3 Normal, float3 View, float Metalness, float Roughness, const bool Directional, float FloraSignal = 0.0f)
 {
     float3 Half = normalize(Light + View);
 
@@ -66,7 +68,7 @@ float4 DirectLightResponse(float4 Radiance, float3 Light, float3 Normal, float3 
     float4 Response = float4(Material.x, Material.x, Material.x, Material.y);
 
     // OWA: Metalness fresnel - adds Schlick fresnel for metallic materials
-    if (!owa_skip_fresnel(Metalness))
+    if (!owa_skip_fresnel(FloraSignal))
     {
         float NdotV = max(0.0f, -dot(Normal, View));
         Response.a += owa_compute_fresnel(NdotV, owa_calc_metalness(Metalness), Material.x);
