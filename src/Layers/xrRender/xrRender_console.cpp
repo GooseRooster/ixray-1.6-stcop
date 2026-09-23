@@ -153,8 +153,8 @@ float		ps_r2_df_parallax_h			= 0.02f;
 // OWA: texture contrast strength (Build 3120 style; 0 = off, 1 = full)
 float		ps_r__tf_contrast			= 0.5f;
 
-// OWA: tonemapping pipeline parameters (defaults = OW engine defaults; HDR
-// output stays dormant until the HDR phase)
+// OWA: tonemapping pipeline parameters (defaults tuned to the OW shader;
+// HDR output stays dormant while hdr10_on = 0)
 float		ps_r4_hdr10_whitepoint_nits = 400.0f;
 float		ps_r4_hdr10_ui_nits			= 400.0f;
 float		ps_r4_hdr10_pda_intensity	= 1.0f;
@@ -190,7 +190,7 @@ float		ps_r2_sun_far				= 160.f;
 float		ps_r2_sun_near				= 20.f;
 float		ps_r2_sun_depth_far_scale	= 1.00000f;			// 1.00001f
 float		ps_r2_sun_depth_near_scale	= 1.0000f;			// 1.00001f
-// OWA: OW parity - monolith defaults all lumscale values to 1.0 (IX-Ray had 1.1/0.95/0.6)
+// OWA: all lumscale values neutralized to 1.0 (IX-Ray used 1.1/0.95/0.6)
 float		ps_r2_sun_lumscale			= 1.0f;
 float		ps_r2_sun_lumscale_hemi		= 1.0f;
 float		ps_r2_sun_lumscale_amb		= 1.0f;

@@ -24,17 +24,15 @@ float4 main(v2p_TL Input) : SV_Target
     float3 h = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(0, 1)).xyz;
     float3 i = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(1, 1)).xyz;
 
-    // OWA: HDR-native normalization (P3.5 follow-up to the TAA fix).
-    // The CAS core assumes [0,1] input (the "2.0 - mxRGB" term). The previous
-    // implementation ran the core in an x/(1+x) compressed domain and restored
-    // with x/(1-x) - the same reversible-map class as the TAA bug: near-
-    // saturated HDR pixels overshoot past the domain, the restore's epsilon
-    // guard emits ~1e4-1e5 spikes, and the internal saturate silently clips
-    // every sharpened highlight. Instead, normalize the neighborhood by its
-    // per-channel max (only when it exceeds 1.0 - LDR neighborhoods keep the
-    // legacy math untouched) and scale back after sharpening. Overshoot in
-    // normalized space is bounded by the amplitude term and maps to a bounded
-    // HDR overshoot - no explosion at any input magnitude.
+    // OWA: HDR-native normalization. The CAS core assumes [0,1] input (the
+    // "2.0 - mxRGB" term). Running it on raw HDR values needs a compress/
+    // restore pair, and any reversible map of the x/(1-x) family explodes
+    // through its epsilon guard on near-saturated pixels (and the internal
+    // saturate silently clips sharpened highlights). Instead, normalize the
+    // neighborhood by its per-channel max (only when it exceeds 1.0 - LDR
+    // neighborhoods keep the legacy math untouched) and scale back after
+    // sharpening. Overshoot in normalized space is bounded by the amplitude
+    // term and maps to a bounded HDR overshoot - safe at any input magnitude.
     float3 nmax = max(max(max(max(max(max(max(max(a, b), c), d), e), f), g), h), i);
     float3 scale = max(nmax, 1.0f);
 

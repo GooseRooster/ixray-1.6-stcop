@@ -2,7 +2,7 @@
 #define OWA_TONEMAPPING_H_INCLUDED
 
 // ============================================================================
-// OWA: The tonemapping pipeline — port of OW hdr10.h, renamed HDR-neutral.
+// OWA: The tonemapping pipeline.
 //
 // Unified tonemapping for SDR and HDR output. HDR is one output path of this
 // pipeline, not its identity.
@@ -16,12 +16,10 @@
 //   - Hybrid luminance/maxRGB blend preserves saturated colors (fires, neon)
 //   - SDR: target_white = 1.0, encode to sRGB
 //   - HDR: target_white = peak_nits/80, chroma correction, Rec.2020, PQ encode
-//     (dormant until the HDR output phase wires the swapchain)
+//     (dormant while the engine binds hdr10_on = 0)
 //
-// Note: the uniform slot names (hdr10_parameters*, cg_parameters*) are kept
-// identical to OW's hdr10.h for cross-repo diff-ability; every function name
-// is HDR-neutral. The HDR output branch stays inactive while the engine binds
-// hdr10_on = 0.
+// Note: uniform slot names (hdr10_parameters*, cg_parameters*) match the OW
+// shader tree so the two stay diff-able.
 // ============================================================================
 
 #include "owa_oklab.hlsli"
@@ -41,7 +39,7 @@ uniform float4 hdr10_parameters11;
 uniform float4 cg_parameters1;  // exposure, contrast, saturation, contrast_middle_gray
 uniform float4 cg_parameters2;  // brightness, gamma_rcp, unused, unused
 
-/* --- Macros (HDR output path — dormant until the HDR phase) --- */
+/* --- Macros (HDR output path — dormant while hdr10_on = 0) --- */
 #define TONEMAP_WHITEPOINT_NITS  (hdr10_parameters1.x)
 #define TONEMAP_UI_NITS_SCALAR   (hdr10_parameters1.y)
 #define TONEMAP_IS_HDR           (hdr10_parameters1.z != 0.0)
@@ -118,7 +116,7 @@ float3 ApplyColorspaceTransform(float3 color, float3x3 xform)
 	return mul(xform, color);
 }
 
-// Linearize the gamma-encoded pipeline with pure 2.2 (OW sRGB input convention)
+// Linearize the gamma-encoded pipeline with pure 2.2 (sRGB input convention)
 float3 sRGBToLinear(float3 color)
 {
 	color = pow(color, 2.2);
@@ -178,7 +176,7 @@ float Luminance_Rec2020(float3 color)
 	return dot(color, lw);
 }
 
-// Expects input color to be in the target colorspace (renamed from OW HDR10_Luminance to avoid cgim.h collision)
+// Expects input color to be in the target colorspace
 float LuminanceTarget(float3 color)
 {
 	if (TONEMAP_USE_COLORSPACE_REC709) {
@@ -328,7 +326,7 @@ float3 HermiteSplineUnified(float3 color, float target_white, float max_input, b
     return oklab_lerp(lum_result, max_result, blend);
 }
 
-// HDR version with chroma correction (BT.2390 Annex 1) — dormant until HDR phase
+// HDR version with chroma correction (BT.2390 Annex 1) — dormant while hdr10_on = 0
 float3 HermiteSplineHDR(float3 color, float target_white, float max_input)
 {
     static const float sdr_nits = 80.0;
@@ -510,7 +508,7 @@ float3 ApplyTonemap_World(float3 color)
         return LinearToSRGB(saturate(tonemapped));
     }
 
-    // --- HDR Path (dormant until the HDR output phase wires the swapchain) ---
+    // --- HDR Path (dormant while hdr10_on = 0) ---
     // Transform to target colorspace before tonemapping (if P3 or Rec.2020 selected)
     color = TransformColorspace_ToTarget(color);
 
@@ -529,7 +527,7 @@ float3 ApplyTonemap_World(float3 color)
     return ApplyST2084_PQ(nits / st2084_max_nits);
 }
 
-// UI rendering: sRGB -> HDR10 without tonemapping (dormant until HDR phase)
+// UI rendering: sRGB -> HDR10 without tonemapping (dormant while hdr10_on = 0)
 float3 ApplyTonemap_UI(float3 color, float nits_scalar, float alpha)
 {
     if (!TONEMAP_IS_HDR) return color;

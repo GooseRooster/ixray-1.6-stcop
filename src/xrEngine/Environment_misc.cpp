@@ -406,7 +406,7 @@ void CEnvDescriptor::load	(CEnvironment& environment, CInifile& config)
 	if (config.line_exist(m_identifier.c_str(),"water_intensity"))
 		m_fWaterIntensity = config.r_float(m_identifier.c_str(),"water_intensity");
 
-	// OWA: additive weather keys (present in OW weathers; harmless if absent)
+	// OWA: additive weather keys (harmless if absent)
 	if (config.line_exist(m_identifier.c_str(),"hemi_vibrance"))
 		m_fHemiVibrance = config.r_float(m_identifier.c_str(),"hemi_vibrance");
 	if (config.line_exist(m_identifier.c_str(),"hemi_contrast"))

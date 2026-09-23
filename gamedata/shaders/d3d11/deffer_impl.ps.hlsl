@@ -90,15 +90,15 @@ void main(p_bumped_new I, out OutStructure O)
 		float4 Normal_A = s_dn_a.Sample(smp_base, tcdbump) * Mask.w;
 
 		M.Normal = Normal_R.wzy + Normal_G.wzy + Normal_B.wzy + Normal_A.wzy - 0.5;
-		// OWA: linear gloss sum (closest to OW additive semantics for 4-way blends)
+		// OWA: linear gloss sum for 4-way blends
 		M.Roughness = min(1.0f, Normal_R.x + Normal_G.x + Normal_B.x + Normal_A.x);
 	#else
 		float4 Detail = s_detail.Sample(smp_base, tcdbump);
 		float4 DetailBump = s_detailBump.Sample(smp_base, tcdbump);
 
 		M.Normal.xyz = DetailBump.wzy - 0.5f;
-		// OWA: SoC style gloss (OW parity) - linear base gloss + additive detail
-		// gloss. IX-Ray legacy ignored the base bump gloss and multiplied detail.
+		// OWA: SoC style gloss - linear base gloss + additive detail gloss
+		// (the legacy path ignored the base bump gloss and multiplied detail).
 		#ifdef USE_BUMP
 			float4 Bump = s_bump.Sample(smp_base, I.tcdh.xy);
 			M.Roughness = Bump.x + DetailBump.x;

@@ -9,8 +9,8 @@ uniform float4 c_brightness;
 // Pixel
 float4 main(p_postpr I) : SV_Target
 {
-    // OWA: input saturates removed (Phase 3) - this quad now runs pre-tonemap
-    // on HDR; the hermite spline handles compression at the final stage.
+    // OWA: input saturates removed - this quad runs pre-tonemap on HDR;
+    // the hermite spline handles compression at the final stage.
     float3 t_0 = s_base0.Sample(smp_rtlinear, I.Tex0.xy).xyz;
     float3 t_1 = s_base1.Sample(smp_rtlinear, I.Tex1.xy).xyz;
     float3 image = (t_0 + t_1) * 0.5f;

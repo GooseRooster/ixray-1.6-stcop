@@ -46,7 +46,7 @@ float4 main(_input I) : SV_Target
     float3 Ambient = AmbientLighting(DiffuseIrradance, SpecularIrradance, max(0.0, dot(O.Normal, -O.View.xyz)), O.Color, O.Metalness, O.Roughness, O.F0);
     float3 Color = Occ * Ambient + Light.rgb;
 #else
-    // OWA: Hemisphere lighting model (OW hmodel port)
+    // OWA: Hemisphere lighting model
     float3 hdiffuse, hspecular;
     owa_hemisphere(hdiffuse, hspecular, O.Metalness, O.Hemi, O.Roughness, O.Point.xyz, O.Normal);
 
@@ -57,9 +57,7 @@ float4 main(_input I) : SV_Target
         sun_static = Ldynamic_color * sun_response * O.SSS;
     #endif
 
-    // OWA: Porosity-based wet albedo darkening
-    float wetness = rain_params.y;
-    float3 albedo = O.Color.rgb * calc_wet_albedo_factor_simple(wetness, O.Metalness);
+    float3 albedo = O.Color.rgb;
 
     // OWA texture contrast boost (Build 3120 style)
     // tex_contrast.x: 0-1 range - scales texture contrast effect strength
@@ -67,16 +65,16 @@ float4 main(_input I) : SV_Target
     float3 contrast_hdiffuse = hdiffuse * (albedo * 0.60 + 0.40);
     hdiffuse = oklab_lerp(hdiffuse, contrast_hdiffuse, tex_contrast.x);
 
-    // OWA Unified Pipeline: Allow values to exceed 1.0 - final tonemapping
-    // (hermite spline, Phase 3) will handle highlight compression
+    // OWA: values may exceed 1.0 - the final hermite spline tonemapper
+    // handles highlight compression
     hdiffuse.rgb = max(0, hdiffuse.rgb);
 
-    // OWA: Multibounce AO is deferred to the DIL phase; screen-space AO applies
-    // to ambient only (direct light is shadowed by the sun shadow map).
+    // OWA: screen-space AO applies to ambient only (direct light is shadowed
+    // by the sun shadow map); multibounce AO comes later with probe lighting.
     hdiffuse *= Occ;
     hspecular *= Occ;
 
-    // OWA: Albedo and gloss applied once here (OW composition):
+    // OWA: Albedo and gloss applied once here:
     // light = direct response + hemi; C = albedo.gloss * light(diffuse.specular)
     float4 light = float4(Light.rgb + hdiffuse + sun_static.rgb, Light.a + sun_static.a);
     float4 C = float4(albedo, O.Roughness) * light;

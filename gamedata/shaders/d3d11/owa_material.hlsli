@@ -2,7 +2,7 @@
 #define OWA_MATERIAL_H_INCLUDED
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// OWA: Unified metalness detection (ported from OW owa_metalness.h, verbatim).
+// OWA: Unified metalness detection.
 //
 // Engine transforms THM material IDs via: (mtl + 0.5) / 4.0
 // After GBuffer round-trip, actual shader values are:
@@ -20,7 +20,7 @@
 
 // Flora and terrain material IDs for exclusion
 // Flora uses Material 0 but with special flag, ends up around 0.15
-// (matches OW common_brdf.h MAT_FLORA / MAT_TERRAIN)
+// (matches the shared material ID layout)
 #define OWA_MAT_FLORA 0.15f
 #define OWA_MAT_FLORA_EPSILON 0.04f
 #define OWA_MAT_TERRAIN 0.95f
@@ -75,7 +75,7 @@ float owa_compute_fresnel(float NdotV, float metalness)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// OWA: Shadow terminator contrast shaping (ported from OW lmodel.h).
+// OWA: Shadow terminator contrast shaping.
 // Crisper lit/shadow boundary on directional (sun/sky) light only.
 // 0.80× at the terminator (NdotL=0) → 1.0× for forward-facing surfaces.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -85,9 +85,7 @@ float owa_terminator_contrast(float NdotL)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// OWA: Specular Anti-Aliasing for Environment Reflections (simplified)
-// (ported from OW pbr_brdf.h specAA_rough_env — the only pbr_brdf helper the
-// classic path uses; pbr_brdf.h itself is not ported, matching OW's usage).
+// OWA: Specular Anti-Aliasing for Environment Reflections.
 //////////////////////////////////////////////////////////////////////////////////////////
 float specAA_rough_env(float3 N, float rough)
 {

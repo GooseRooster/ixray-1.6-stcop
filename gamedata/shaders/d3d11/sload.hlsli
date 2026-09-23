@@ -117,8 +117,7 @@ void SloadNew(inout p_bumped_new I, inout IXrayMaterial M)
 		M.Normal = Bump.wzy + BumpX.xyz - 1.0f;
 
 		M.Metalness = 0.0f;
-		// OWA: SoC style - linear gloss (preserves texture artist intent).
-		// OW parity: the legacy squaring of the texture gloss is removed -
+		// OWA: SoC style - linear gloss (preserves texture artist intent);
 		// gloss feeds the LUT specular response linearly.
 		M.Roughness = Bump.x;
 
@@ -146,7 +145,7 @@ void SloadNew(inout p_bumped_new I, inout IXrayMaterial M)
     M.Color.xyz *= Detail.xyz * 2.0f;
 
     #ifndef USE_PBR
-		// OWA: SoC style - additive detail gloss (OW parity; was `*= Detail.w * 2`)
+		// OWA: SoC style - additive detail gloss
 		#ifdef USE_TDETAIL_BUMP
 			float4 DetailBump = s_detailBump.Sample(smp_base, tcdbump);
 			float4 DetailBumpX = s_detailBumpX.Sample(smp_base, tcdbump);

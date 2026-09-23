@@ -2,7 +2,7 @@
 #define OWA_OKLAB_H_INCLUDED
 
 // ============================================================================
-// OWA: Oklab color space utilities (ported from OW owa_oklab.h, verbatim).
+// OWA: Oklab color space utilities.
 // Based on Björn Ottosson's Oklab: https://bottosson.github.io/posts/oklab/
 //
 // Oklab is a perceptually uniform color space where:

@@ -54,7 +54,7 @@ float3 FresnelSchlick(float3 F, float NdotV)
 // rgb = LUT diffuse response (terminator-contrasted for directional light)
 // a   = LUT specular response + Schlick metalness fresnel boost
 // The accumulator stores rgb=diffuse response, a=specular response; albedo and
-// gloss are applied once at combine stage (OW composition).
+// gloss are applied once at combine stage.
 float4 DirectLightResponse(float4 Radiance, float3 Light, float3 Normal, float3 View, float Metalness, float Roughness, const bool Directional)
 {
     float3 Half = normalize(Light + View);

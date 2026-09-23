@@ -2,7 +2,7 @@
 #define OWA_HEMISPHERE_H_INCLUDED
 
 // ============================================================================
-// OWA: Hemisphere lighting model — port of OW hmodel.h (classic deferred path).
+// OWA: Hemisphere lighting model (classic deferred path).
 //
 // Differences from IX-Ray's stock legacy ambient (metalic_roughness_ambient):
 // - hscale = h, no normal influence (SoC/CS/LA behavior)
@@ -10,15 +10,15 @@
 //   chroma; brightness comes from weather L_hemi_color * lumscale * intensity
 // - hemi vibrance (weather key) via hemi_parameters.x
 // - Material-based cubemap mips (diffuse/specular)
-// - Sun chrominance split (DIL-probe SH direction stubbed to zero until P8)
+// - Sun chrominance split (SH probe direction stubbed to zero until the
+//   Dynamic Indirect Light probe system exists)
 // - Wet surface gloss boost + water-film Fresnel sheen (owa_wetness)
 // - Schlick metalness fresnel on env specular
 //
-// Binder compensation note: OW reads raw L_hemi_color/L_ambient and applies
-// L_lumscale separately. IX-Ray's L_hemi_color binder already bakes
-// lumscale_hemi*4 and L_ambient bakes lumscale_amb*2 — so the port applies
-// OWA_ENV_BINDER_COMPENSATION (0.5) to reach OW's net multipliers
-// (lumscale_hemi*2, raw ambient*1).
+// Binder compensation note: IX-Ray's L_hemi_color binder bakes
+// lumscale_hemi*4 and L_ambient bakes lumscale_amb*2, while this model wants
+// net multipliers lumscale_hemi*2 and raw ambient*1 — so the defines below
+// compensate the baked factors to net out correctly.
 // ============================================================================
 
 #include "owa_material.hlsli"
@@ -29,10 +29,11 @@
 #define OWA_HEMI_INTENSITY_MUL 2.0
 
 // IX-Ray binder compensation (see header note):
-// - hemi: L_hemi_color bakes lumscale_hemi*4, OW net = lumscale_hemi*2 -> x0.5
-// - ambient: L_ambient bakes lumscale_amb*2 and OW adds RAW ambient, so the
-//   compensation needs the lumscale value -> bound as L_lumscale.z (OW's
-//   uniform name and slot layout: x=sun, y=hemi, z=amb).
+// - hemi: L_hemi_color bakes lumscale_hemi*4, the model wants lumscale_hemi*2
+//   net -> x0.5
+// - ambient: L_ambient bakes lumscale_amb*2 and the model adds RAW ambient,
+//   so the compensation needs the lumscale value -> bound as L_lumscale.z
+//   (uniform slot layout: x=sun, y=hemi, z=amb).
 #ifndef OWA_LUMSCALE_DECLARED
 #define OWA_LUMSCALE_DECLARED
 uniform float4 L_lumscale; // x=sun, y=hemi, z=amb (IX-Ray console values)
@@ -48,7 +49,8 @@ uniform float4 env_color;
 uniform float4 rain_params; // x = rain density, y = accumulated wetness, w = snowmask
 #endif
 
-// OWA: Hemi/weather parameters (semantic replacement for OW's hmodel_stuff):
+// OWA: Hemi/weather parameters (semantics carried over from OW's
+// hmodel_stuff slot):
 // x = hemi vibrance (weather key hemi_vibrance)
 // y = hemi contrast (weather key hemi_contrast)
 // z = wet surface factor (weather key wet_surface_factor)
@@ -63,7 +65,7 @@ uniform float4 hemi_parameters;
 //   chroma      - Input chrominance to modulate (neutral = float3(1,1,1))
 //   nw          - World-space surface normal
 //   sh_dir_ws   - World-space SH primary direction (stub float3(0,0,0) until
-//                 Dynamic Indirect Light wires the real SH probe in P8).
+//                 the Dynamic Indirect Light probe system provides it).
 //   sky_chroma  - Pre-vibrance cubemap chrominance (env_d_chroma from caller).
 //
 // Uses Ldynamic_dir (world-space sun direction) and Ldynamic_color as globals.
@@ -81,7 +83,7 @@ float3 OWA_SunChrominanceSplit(float3 chroma, float3 nw, float3 sh_dir_ws, float
     // Base facing factor: 0 = surface points away from sun, 1 = toward sun
     float sun_facing = dot(nw, sun_dir_ws) * 0.5 + 0.5;
 
-    // SH modulation: skipped while the DIL probe SH direction is stubbed to zero.
+    // SH modulation: skipped while the SH probe direction is stubbed to zero.
     float sh_mag = length(sh_dir_ws);
     if (sh_mag > 0.001)
     {
@@ -159,7 +161,7 @@ void owa_hemisphere
 	float wet_gloss_add = wetness * 0.35;  // Add up to 0.35 gloss
 	float wet_gloss = saturate(lerp(gloss, max(gloss, wet_gloss_max), wetness) + wet_gloss_add * (1.0 - gloss));
 
-	// OWA: Directional chrominance split (no probe data available — DIL stub)
+	// OWA: Directional chrominance split (no probe data available yet — zero stub)
 	float3 env_d_color_split = OWA_SunChrominanceSplit(env_d_color, nw, float3(0, 0, 0), env_d_chroma);
 
 	// OWA: Weather hemi controls brightness via L_hemi_color (binder-compensated)

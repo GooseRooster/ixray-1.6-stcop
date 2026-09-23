@@ -13,9 +13,9 @@ float3 main(v2p_aa_AA I) : SV_Target
 	Bloom = BrokeBloom(Bloom);
 #endif
 
-    // OWA: no tonemapping here anymore - the hermite spline runs at the final
-    // quad (gamma_apply stage), OW composition. Bloom compose stays until
-    // Phase 4 replaces the bloom implementation.
+    // OWA: no tonemapping here anymore - the hermite spline tonemap runs once
+    // at the final quad (gamma_apply stage). The old bloom compose stays until
+    // the Kawase bloom replaces it.
     Color = combine_bloom(Color, Bloom).xyz;
 
 #ifdef USE_CGIM_COLOR_TWEAK

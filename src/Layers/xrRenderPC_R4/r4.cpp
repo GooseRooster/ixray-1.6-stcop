@@ -129,17 +129,17 @@ static class cl_tex_contrast : public R_constant_setup {
   }
 } binder_tex_contrast;
 
-// OWA: lumscale trio for the hemisphere's binder compensation (OW L_lumscale
-// uniform layout: x=sun, y=hemi, z=amb)
+// OWA: lumscale trio for the hemisphere's binder compensation
+// (uniform layout: x=sun, y=hemi, z=amb)
 static class cl_owa_lumscale : public R_constant_setup {
   virtual void setup(R_constant *C) {
     RCache.set_c(C, ps_r2_sun_lumscale, ps_r2_sun_lumscale_hemi, ps_r2_sun_lumscale_amb, 0);
   }
 } binder_owa_lumscale;
 
-// OWA: tonemapping pipeline parameters (uniform slot names kept identical to
-// OW for diff-ability). hdr10_on binds 0 until the HDR output phase wires the
-// swapchain - the SDR spline branch is active, the HDR branch dormant.
+// OWA: tonemapping pipeline parameters (uniform slot names match the OW
+// shader tree for diff-ability). hdr10_on binds 0 - the SDR spline branch is
+// active, the HDR branch dormant until the HDR display path lands.
 static class cl_hdr10_parameters1 : public R_constant_setup {
 	virtual void setup(R_constant* C)
 	{

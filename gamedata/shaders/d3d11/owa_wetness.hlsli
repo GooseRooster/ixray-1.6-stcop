@@ -1,7 +1,7 @@
 #ifndef OWA_WETNESS_H_INCLUDED
 #define OWA_WETNESS_H_INCLUDED
 
-// OWA Wetness System (ported from OW owa_wetness.h, verbatim).
+// OWA Wetness System
 // Provides physically-based wetness effects:
 // - Porosity-based albedo darkening (porous materials absorb more light when wet)
 // - Water film F0 overlay (wet surfaces gain water's reflectance characteristics)
@@ -10,9 +10,11 @@
 //   float wetness = rain_params.y;  // 0-1 accumulated wetness
 //   albedo.rgb *= calc_wet_albedo_factor(wetness, material_ID, metalness);
 //   f0 = calc_wet_specular_f0(f0, wetness, metalness);
+//
 
 //=============================================================================
 // Porosity-Based Albedo Darkening
+// CURRENTLY not used
 //=============================================================================
 // Physical basis: When surfaces get wet, light enters the water layer and
 // bounces around before being absorbed. This makes wet surfaces appear darker.
@@ -56,7 +58,7 @@ float calc_wet_albedo_factor(float wetness, float material_ID, float metalness)
 // optical boundary. The water's F0 overlays on top of the surface's F0.
 //
 // Note: the classic (LUT) material path does not consume F0 — this helper is
-// kept for the dormant PBR branch, exactly as in OW.
+// kept for the dormant PBR branch.
 //=============================================================================
 float3 calc_wet_specular_f0(float3 dry_f0, float wetness, float metalness)
 {

@@ -21,7 +21,7 @@
 | Auto-exposure | Neutralized OW-style (scale resolves to 1.0); luminance chain kept running. Spline handles all compression; prevents double-compression. |
 | GTAO | Adapt IX-Ray's built-in GTAO (`gtao_render/gtao_filter`) to Dynamic Indirect Light. XeGTAO dropped. |
 | def_hdr | Unified at **7.5** (OW value). |
-| Wetness | Ported in the material phase, isolated in `owa_wetness.hlsli` for cheap removal if weather coupling disappoints. |
+| Wetness | Ported in the material phase, isolated in `owa_wetness.hlsli`. **Albedo darkening skipped 2026-09-23** (playtest: too strong even at OW parity with the per-pixel rain-patch system — see P3.6); wet gloss boost + water-film sheen stay active; helpers retained dormant for cheap re-enable. |
 | Hires RTs | **Always on** — no `r4_hires_rts` cvar; RTs become FP16 unconditionally. |
 | Launcher | Dropped everywhere; OW launcher is redone much later. |
 | Feature parity | DOF/blur/nightvision/heatvision/TAA stay **IX-Ray's**; compatibility with the new pipeline is an explicit audit item. |
@@ -39,6 +39,16 @@
   at phase end.
 - **Standing parity-gate check**: *no new or unclassified SDR clamps on
   touched files* (consults the §4 inventory).
+- **Comment style policy (standing, applies to all port code)**: code
+  comments carry the `// OWA:` marker plus a brief explanation of what the
+  code does (and why, where a constant is non-obvious). They must **not**
+  reference plan phases (`Phase N`/`P3.5`/`P5`), investigation rounds, or
+  dates — that context lives in this plan doc only. No "ported from OW
+  `x.h`, verbatim" provenance lines; the `OWA:` marker is the provenance.
+  Provenance-adjacent notes stay only when they explain a naming or constant
+  decision (e.g. "uniform slot names match the OW shader tree for
+  diff-ability"). Applied as a full sweep 2026-09-23 after P3.5; re-check at
+  each phase exit alongside the parity gate.
 - **Shader-tree policy**: during the port phases, **all shader changes live in
   this repo's tracked `gamedata/shaders/d3d11/` only** — no `_GAME` mirror
   while the port work runs. This keeps every change materially testable on the
@@ -107,7 +117,9 @@ Delivered:
   SunChrominanceSplit (**SH direction stubbed to zero — wired at P8/DIL**),
   wet gloss boost + water-film sheen.
 - `tex_contrast` Oklab blend (`owa_oklab.hlsli`) in `combine_1`.
-- Wetness: porosity albedo darkening in `combine_1` (`owa_wetness.hlsli`).
+- Wetness: porosity albedo darkening in `combine_1` (`owa_wetness.hlsli`)
+  — **skipped 2026-09-23** (P3.6 decision); wet gloss boost + water-film
+  sheen remain active.
 - `def_gloss` 2/255 → 24/255 (SoC glossy — playtest call).
 - **Gloss semantics aligned to OW (post-P2 playtest finding)**: the legacy
   squaring of texture gloss (`Bump.x²`) and the multiplicative detail gloss
@@ -245,7 +257,22 @@ needs them.
 ### Phase 3.6: Minor fixes from previous work
 
 1. Potentially related to above: In SDR, the sun sprite can actually invert slightly in brightness when you look at directly. Also garbage data or clamping issues? (post-P3.5 note: re-test first — the TAA history feedback fix may have resolved part of this)
-2. Rain darkening albedo: Too coarse, visible pixellation, and too intense. Reduce intensity and figure out how to smoothly lerp or remove
+2. Rain darkening albedo — **RESOLVED by removal (2026-09-23)**: diagnosed
+   as a broken interplay between the two wetness systems (see diagnosis
+   note below), fixed to OW parity first, then **user decision: strip the
+   albedo darkening entirely** — even at correct parity the combined effect
+   was too strong. State now: `rain_apply_gloss.ps.hlsl` back at the IX-Ray
+   default; combine_1 applies no wetness albedo darkening (`albedo = raw
+   g-buffer albedo`); wet gloss boost + water-film sheen in
+   `owa_hemisphere` remain; `owa_wetness.hlsli` darkening helpers retained
+   dormant for cheap re-enable.
+   - Diagnosis note (for the archive): "too intense + blocky wet/dry
+     boundary" = combine_1's global porosity darkening (P2) stacking with
+     the per-pixel rain-patch darkening. OW pairs them via `+rain/2` in its
+     apply pass (documented in its combine_1.ps); IX-Ray's copy carried an
+     old `max(0.5)` floor instead → net ×0.24 wet / ×0.47 dry at full rain
+     vs OW's ×0.24 / ×0.71. The mask (low-res rain shadow map +
+     `saturate(O.Hemi*10)` gate) is byte-identical in OW.
 
 ### Phase 4 — Kawase bloom
 

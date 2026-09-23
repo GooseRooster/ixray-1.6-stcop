@@ -1,13 +1,12 @@
 #include "common.hlsli"
 #include "tonemapping.hlsli"
 
-// OWA: This stage is the end-of-chain tonemapper (OW composition).
-// Input: gamma-encoded scene from the game postprocess quad (rt_BackbufferLUT).
-// ApplyTonemap_World linearizes with pure 2.2, applies LogC color grading,
-// runs the BT.2408 hermite spline, and encodes to sRGB for the swapchain.
-// The legacy rs_c_gamma/brightness/contrast pass is superseded here (grading
-// consolidation - Phase 3); the engine still binds color_params/color_grading
-// but the shader no longer consumes them.
+// OWA: This stage is the end-of-chain tonemapper. Input: gamma-encoded scene
+// from the game postprocess quad (rt_BackbufferLUT). ApplyTonemap_World
+// linearizes with pure 2.2, applies LogC color grading, runs the BT.2408
+// hermite spline, and encodes to sRGB for the swapchain. The legacy
+// rs_c_gamma/brightness/contrast pass is superseded here; the engine still
+// binds color_params/color_grading but the shader no longer consumes them.
 
 struct PSInput
 {

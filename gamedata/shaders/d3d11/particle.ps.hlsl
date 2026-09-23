@@ -21,7 +21,7 @@ float4 main(v2p I) : SV_Target
     float4 result = I.c * s_base.Sample(smp_base, I.tc0);
 
     // OWA: HDR particle expansion for emissive particles (fire, sparks, muzzle flash)
-    // HDR-only (dormant until the HDR output phase): TONEMAP_PARTICLE_EXPANSION
+    // HDR-only (dormant while hdr10_on = 0): TONEMAP_PARTICLE_EXPANSION
     // scales it: 0=none, 1.0=default (3x max), higher=more
     if (TONEMAP_IS_HDR) {
         float particle_lum = Luminance_Rec709(result.rgb);

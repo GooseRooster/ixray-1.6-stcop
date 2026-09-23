@@ -82,12 +82,12 @@ extern ECORE_API float			ps_r2_df_parallax_h;		// r2-only
 // OWA: texture contrast strength (Build 3120 style; 0 = off, 1 = full)
 extern ECORE_API float			ps_r__tf_contrast;
 
-// OWA: tonemapping pipeline parameters (uniform names match OW for diff-ability)
-extern ECORE_API float			ps_r4_hdr10_whitepoint_nits;	// HDR peak nits (dormant until HDR phase)
+// OWA: tonemapping pipeline parameters (names match the OW shader tree for diff-ability)
+extern ECORE_API float			ps_r4_hdr10_whitepoint_nits;	// HDR peak nits (dormant while hdr10_on = 0)
 extern ECORE_API float			ps_r4_hdr10_ui_nits;			// UI nits scalar base (dormant)
 extern ECORE_API float			ps_r4_hdr10_pda_intensity;		// PDA path intensity (dormant)
 extern int						ps_r4_hdr10_pda;				// PDA flag (dormant)
-extern int						ps_r4_hdr10_on;					// HDR output on/off (dormant until P5)
+extern int						ps_r4_hdr10_on;					// HDR output on/off (dormant while 0)
 extern int						ps_r4_hdr10_colorspace;			// 0 = Rec.709, 1 = P3-D65, 2 = Rec.2020
 extern float					ps_r4_hdr10_chroma_correction;	// BT.2390 chroma correction (HDR only)
 extern ECORE_API float			ps_r4_cg_exposure;				// grading exposure
