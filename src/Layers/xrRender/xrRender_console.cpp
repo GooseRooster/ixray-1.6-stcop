@@ -153,9 +153,6 @@ float		ps_r2_df_parallax_h			= 0.02f;
 // OWA: texture contrast strength (Build 3120 style; 0 = off, 1 = full)
 float		ps_r__tf_contrast			= 0.5f;
 
-// OWA: combine_1 channel debug
-int			ps_r__debug_combine			= 0;
-
 // OWA: tonemapping pipeline parameters (defaults = OW engine defaults; HDR
 // output stays dormant until the HDR phase)
 float		ps_r4_hdr10_whitepoint_nits = 400.0f;
@@ -734,7 +731,6 @@ void		xrRender_initconsole	()
 	CMD4(CCC_Float,		"r2_parallax_h",		&ps_r2_df_parallax_h,		.0f,	.5f		);
 
 	// OWA: texture contrast strength (Build 3120 style)
-	CMD4(CCC_Integer,	"r__debug_combine",		&ps_r__debug_combine,		0,		9		);
 	CMD4(CCC_Float,		"r__tf_contrast",		&ps_r__tf_contrast,			0.0f,	1.0f	);
 
 	// OWA: tonemapping pipeline

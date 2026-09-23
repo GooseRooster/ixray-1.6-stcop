@@ -47,7 +47,8 @@
   after the engine feature ports land and the OW codebase is IX-Ray ready.
 - **Hazard ledger from the research doc** still applies: H1 (bloom space, P4),
   H2 (policy above), H3 (chain topology, P3), H4 (TAA reversible tonemapper,
-  P3), H6 (casing/unity build), H7 (HDR collateral, P5), H8 (dead exposure
+  P3 — verdict revoked in P3.5, domain-closure fix landed), H6
+  (casing/unity build), H7 (HDR collateral, P5), H8 (dead exposure
   clamp, P3), H9 (`rt_BackbufferLUT` misnomer — name kept, note only).
 
 ---
@@ -158,9 +159,11 @@ engine binders.
   mid-chain `tonemap()` + `s_tonemap` sample; bloom compose stays until P4.
   `postprocess(.cm)` sample saturates removed (pp runs pre-tonemap on HDR).
 - **Feature-compat audit results**:
-  - TAA reversible pair — **kept unchanged**: it is self-contained
-    (Lottes forward → resolve → inverse, self-cancelling, independent of the
-    display operator). H4 resolved without churn.
+  - TAA reversible pair — **initially kept unchanged, verdict REVOKED
+    (P3.5)**: the "self-contained, self-cancelling" claim holds only for
+    compressed values in `[0,1)`; the HDR chain breaks the domain and the
+    history feedback loop detonates (see P3.5 root cause). Fixed 2026-09-23
+    via domain closure in `taa_render.ps.hlsl`.
   - CAS — **already self-inverse** (forward `×rcp(1+c)` per tap at
     lines 9-20, restore `x/(1-x)` at :64, same reversible-Reinhard pattern as
     TAA) — HDR-safe unmodified; runs pre-tonemap now (sharpening behavior in
@@ -199,71 +202,49 @@ engine binders.
   `Ldynamic_color.w`).
 
 
-  ### Phase 3.5 — Lamp/omni light artifact investigation (BLOCKS Phase 4)
+### Phase 3.5 — Lamp/omni light artifact investigation (RESOLVED 2026-09-23)
 
-**Priority: fix properly before starting Phase 4 (Kawase bloom) — the bloom
-phase must not be built on top of an unresolved compose-path defect.**
+**Symptom (record):** omni/spot lamps showed saturated chroma halos plus
+frame-varying garbage flickers on bright pixels ("deep fried" flares,
+"separator" artifacts at the grille). Chroma-dependent, persisted with bloom
+off, invisible to the combine_1 debug harness — the artifact was born inside
+TAA, downstream of every combine_1 debug view, and the "huge-but-finite"
+reading was additionally a harness fallacy (mode 7's 2.5 threshold is inside
+the hermite spline's designed 20× headroom).
 
-**Symptom (user report, CoP test bench, Skadovsk lamps):**
-- Omni/spot lights produce harsh "deep fried" flares: saturated chroma halos
-  hugging the light volume, plus small "separator" artifacts where the grille
-  mesh surrounding a bulb meets the light volume.
-- Persists with bloom disabled (bloom only reacts to the data, not the cause).
-- Strongly chroma-dependent: saturated orange lamps affected most, white
-  point lights less — consistent with a saturation-amplifying path.
-- Transient component: white lights briefly emit *flickers of garbage in
-  crazy saturated colors* (user suspects near-infinite values) — frame-varying,
-  visible in debug modes 6 (albedo × light) and 7 (compose luminance heatmap),
-  near-constant in normal render.
+**Root cause (bench-confirmed: `r_aa 0` → artifact gone; reproducible on
+gun-sight specular highlight edges):** the LVutner TAA's Lottes reversible
+pair (`c/(1+c)` ↔ `t/(1-t)`) is only self-inverse for compressed values in
+`[0,1)`. In the HDR chain the stddev history clamp (`c_max = mean +
+1.75·σ`) exceeds 1.0 on every high-contrast HDR edge → restore emits
+negative values → re-entering the forward map as `c ≤ -1` saturates to
+exactly 1.0 → the inverse's epsilon guard emits ~1e5 → FP16 history
+overflow (Inf → NaN), preserved by the 0.925 history weight. CAS carried
+the identical hazard class ("self-inverse" P3 audit verdict revoked).
 
-**Ruled out (verified, not guesswork):**
-- NaN/Inf in G-buffer albedo/gloss/hemi/material — detector mode 8 clean.
-- NaN/Inf in compose result, accumulator (rgb+a), hemisphere terms — mode 9 clean.
-- Direct LUT specular magnitude — engine LUT bake reproduced in Python; spec
-  response ≤ 0.035 at hotspots; contribution ~0.2% of lamp color.
-- Stale G-buffer at shell pixels — omni passes are stencil-gated to
-  geometry-rendered pixels.
-- Stale `Ldynamic_color` at combine — engine rebinds the adapted sun
-  (`sunclr`/`sundir`) before `combine_1` renders.
-- Volumetric/mask-path alpha pollution — `SE_MASK_ACCUM_VOL` is R2-only; R4
-  volumetrics merge RGB-only into `rt_Generic_2`.
-- Bloom as the source (persists with bloom off).
+**Fixes (shader-only, bench-validated 2026-09-23):**
+- `taa_render.ps.hlsl` — reversible pair and history clamp clamped to the
+  closed domain `[0, TAA_HDR_MAX=1024]`: max restore ≈1014 (no FP16
+  overflow), negative restores collapse to 0, feedback is a stable fixed
+  point. Legitimate pixels never touch the clamps.
+- `contrast_adaptive_sharpening.ps.hlsl` — reversible `x/(1+x)` pair removed
+  entirely; the neighborhood is normalized by its per-channel max (only when
+  >1.0, so LDR neighborhoods keep the legacy math) and the unmodified AMD
+  core runs at any HDR magnitude; `rcp(mxRGB)` all-black NaN guarded.
 
-**Fixed during the investigation (kept):**
-- Gloss semantics aligned to OW: linear texture gloss + additive detail gloss
-  (`sload.hlsli`, `deffer_impl.ps.hlsl`); BmmD base-bump gloss now read.
-- Hemisphere ambient binder compensation: was 0.6× OW (lumscale_amb baked);
-  now exact via `L_lumscale` uniform.
-- `r2_sun_lumscale*` defaults → 1.0 (OW parity).
-- Debug harness `r__debug_combine` modes 1–9 (remove after investigation,
-  see Phase 9).
+**Deferred suspects** (not this artifact; re-check if lamp-area visuals fail
+the OW A/B): shell/mask stencil z-fight at volume∩grille boundaries;
+behind-light-plane `tc.w` flips in `shadow.hlsli test()`/cookie sampling.
 
-**Key insight from the last debug round:**
-All magnitude-viewing modes (1–5) wrap their output in `saturate()` — a
-huge-but-finite value displays as flat white and reads "clean". Mode 7
-(heatmap, red = luminance > 2.5) *did* fire — so the transient garbage is
-**huge-but-finite, not NaN**. The harness cannot currently display magnitude.
 
-**Next steps (ordered):**
-1. **Magnitude-preserving debug modes**: add modes showing `log2(1+value)` or
-   ×0.01 views of `Light.rgb`, `Light.a`, `C.rgb`, `spec` — establishes which
-   channel carries the transient magnitude spike.
-2. **Chain bisection**: disable optional stages one at a time
-   (`ps_r4_cas_sharpening 0`, AA off / TAA off, `r2_mblur 0`, DOF off,
-   `r2_ls_bloom_* 0`) to bracket where the spike enters *after* `combine_1`
-   (candidates: TAA history feedback on HDR values, CAS's inverse-map guard
-   `rcp(max(1e-5, 1−x))` firing on near-saturated HDR pixels, mblur reading
-   previous-frame garbage, postprocess `×2.0` brightness on HDR).
-3. **Suspicious-magnitude audit**: the TAA Lottes pair and CAS both use
-   `x/(1−x)`-style inverses guarded by epsilon — on values that approach the
-   clamp, these produce ~1e4-1e5 amplifications (finite, but the exact
-   "near-infinite flicker" profile). Verify against HDR-scale inputs.
-4. When the writer is identified: fix at the source, remove the harness,
-   re-run the visual A/B, then unlock Phase 4.
+**Exit:** Phase 4 unblocked. Investigation harness (`r__debug_combine`
+modes 1–15: cvar, binder, combine_1 debug block) removed per the Phase 9
+register; the mode designs live in git history if a future chain audit
+needs them.
 
 ### Phase 3.6: Minor fixes from previous work
 
-1. Potentially related to above: In SDR, the sun sprite can actually invert slightly in brightness when you look at directly. Also garbage data or clamping issues?
+1. Potentially related to above: In SDR, the sun sprite can actually invert slightly in brightness when you look at directly. Also garbage data or clamping issues? (post-P3.5 note: re-test first — the TAA history feedback fix may have resolved part of this)
 2. Rain darkening albedo: Too coarse, visible pixellation, and too intense. Reduce intensity and figure out how to smoothly lerp or remove
 
 ### Phase 4 — Kawase bloom
@@ -361,7 +342,7 @@ batch once the ported phases stabilize:
   lumscales at 1.0, the hemisphere's `L_lumscale`-based ambient compensation
   resolves to a clean ×1.0, and the old IX-Ray triple (1.1/0.95/0.6) is gone.
 - **Remove the `r__debug_combine` harness** (console cvar + binder +
-  `combine_1` debug block) after the lamp-artifact investigation closes.
+  `combine_1` debug block) — **done 2026-09-23** with the P3.5 close-out.
 - Sweep stale comments left by superseded values (e.g., `// 1.0f` markers
   that no longer match).
 - Collected during playtests: any remaining small divergences found while
@@ -371,9 +352,9 @@ batch once the ported phases stabilize:
   all testable on the CoP-based test bench with this repo's own gamedata),
   then port the OW game codebase as it stands as a separate body of work.
 - Order is deliberate: RT ceiling (P1) → surfaces (P2) → the tonemapper (P3)
-  → **artifact investigation (P3.5, blocking)** → bloom against the final
-  topology (P4) → HDR as second output (P5) → independent features (P6) →
-  static lighting (P7) → DIL last (P8).
+  → artifact investigation (P3.5, **resolved** — TAA/CAS HDR-domain fixes)
+  → bloom against the final topology (P4) → HDR as second output (P5) →
+  independent features (P6) → static lighting (P7) → DIL last (P8).
 - Hemisphere's chroma split and wetness are the only P2 items with
   forward-dependencies (P8 probes, weather keys) — stubs documented at stub
   sites.
@@ -410,8 +391,8 @@ locked classification below.
 | `gamma_apply.ps.hlsl:17` | final LDR gate `saturate(c * grading)` | **P3 done** — body replaced by `ApplyTonemap_World`; the only deliberate final clamp now lives inside the spline's SDR branch (`saturate(tonemapped)` before sRGB encode, as OW) |
 | `gamma_apply.ps.hlsl:19` → `common_functions.hlsli:186` | `deband_color()` — `saturate(image)` pre-dither | **P3 resolved** — now runs *post*-tonemap (final LDR stage), saturate harmless by construction |
 | `postprocess.ps.hlsl:12-13`, `postprocess_cm.ps.hlsl:16-17` | `saturate(s_baseN.Sample)` sample clamps | **P3 done** — removed (pp runs pre-tonemap on HDR) |
-| `taa_render.ps.hlsl:38/43` | Lottes reversible tonemapper pair | **P3 resolved** — kept unchanged (self-contained reversible pair, independent of the display operator) |
-| `contrast_adaptive_sharpening.ps.hlsl:42/60` | CAS amplitude calc + output clamp | **P3 reclassified G** — CAS is self-inverse (forward per-tap `×rcp(1+c)`, restore `x/(1-x)`); HDR-safe unmodified |
+| `taa_render.ps.hlsl:38/43` | Lottes reversible tonemapper pair | **P3.5 REVISED** — not self-inverse in the HDR chain (domain break → negative restore → ~1e5 spike → FP16/NaN history feedback); domain-closure clamps added (`TAA_HDR_MAX`), see P3.5 |
+| `contrast_adaptive_sharpening.ps.hlsl:42/60` | CAS amplitude calc + output clamp | **P3.5 REVISED** — the `x/(1+x)` reversible wrap had the same hazard class as the TAA pair (restore explosion near saturation + saturate clipping sharpened highlights). Replaced with HDR-native per-channel neighborhood normalization (AMD core untouched, LDR neighborhoods bit-identical); also guarded `rcp(mxRGB)` against all-black neighborhoods |
 | `bloom_luminance_3.ps.hlsl:55` | dead exposure clamp (result discarded — H8) | **P3 done** — clamp now assigned |
 | engine swapchain path | presentation clamps HDR→B8G8R8A8 | P5 (HDR swapchain) |
 

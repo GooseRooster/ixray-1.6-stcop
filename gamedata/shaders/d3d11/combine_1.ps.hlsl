@@ -15,10 +15,6 @@ Texture2D<float> s_occ;
 // OWA texture contrast (Build 3120 style) — 0-1 range, scales effect strength
 uniform float4 tex_contrast;
 
-// OWA: channel debug (r__debug_combine): 1 = accum rgb, 2 = accum alpha,
-// 3 = hemisphere diffuse, 4 = env specular, 5 = direct spec term, 6 = albedo x light
-uniform float4 debug_combine_params;
-
 struct _input
 {
     float4 tc0 : TEXCOORD0;
@@ -97,40 +93,6 @@ float4 main(_input I) : SV_Target
 
     float3 Color = C.rgb + spec;
 
-    // OWA: channel debug — isolate where an artifact lives.
-    // NOTE: this pass blends as dst = src*(1-a) + dst*a, so debug returns use
-    // alpha = 0 (show src fully); the sky lives in the destination buffer.
-    if (debug_combine_params.x > 0.5f)
-    {
-        int dbg_mode = int(debug_combine_params.x);
-        if (dbg_mode == 1) return float4(saturate(Light.rgb), 0.0f);
-        if (dbg_mode == 2) return float4(saturate(Light.a.xxx * 4.0f), 0.0f);
-        if (dbg_mode == 3) return float4(saturate(hdiffuse), 0.0f);
-        if (dbg_mode == 4) return float4(saturate(hspecular), 0.0f);
-        if (dbg_mode == 5) return float4(saturate(C.w * lerp(C.rgb, 1.0h, 0.5h) * owa_spec_light), 0.0f);
-        if (dbg_mode == 6) return float4(saturate(C.rgb), 0.0f);
-        // 7: false-color luminance heatmap of the pre-tonemap compose (shows >1.0 overdrive)
-        if (dbg_mode == 7) return float4(DebugHeatmap(Luminance_Rec709(Color)), 0.0f);
-        // 8: NaN/Inf detector - red where the G-buffer albedo or gloss carries garbage
-        if (dbg_mode == 8)
-        {
-            bool3 bad = isnan(O.Color.rgb) || isinf(O.Color.rgb)
-                     || isnan(O.Roughness.xxx) || isinf(O.Roughness.xxx)
-                     || isnan(O.Hemi.xxx) || isinf(O.Hemi.xxx)
-                     || isnan(O.Metalness.xxx) || isinf(O.Metalness.xxx);
-            return float4(bad ? float3(1, 0, 0) : float3(0, 0.25f, 0), 0.0f);
-        }
-        // 9: NaN/Inf detector on the compose result + accumulator + hemisphere
-        if (dbg_mode == 9)
-        {
-            bool3 bad = isnan(Color) || isinf(Color)
-                     || isnan(Light.rgba) || isinf(Light.rgba)
-                     || isnan(hdiffuse) || isinf(hdiffuse)
-                     || isnan(hspecular) || isinf(hspecular)
-                     || isnan(sun_static.rgb) || isinf(sun_static.rgb);
-            return float4(bad ? float3(1, 0, 0) : float3(0, 0.25f, 0), 0.0f);
-        }
-    }
 #endif
 
     float Fog = PushGamma(saturate(O.ViewDist * fog_params.w + fog_params.x));

@@ -32,15 +32,39 @@ float4 scaled_screen_res; //Render resolution
 #define TAA_HISTORY_SHARPNESS 0.75 //Sharpness factor for history filtering
 #define TAA_DEVIATION 1.75 //Deviation. 1.75 pix
 
+// OWA: Reversible-pair domain closure (P3.5 lamp/sight artifact fix).
+// The Lottes pair (c/(1+c) <-> t/(1-t)) is only self-inverse for t in [0,1).
+// In the HDR chain three paths could push t outside that domain and detonate
+// the history feedback loop:
+//   1. The stddev history clamp (c_max = mean + 1.75*stddev) exceeds 1.0 on
+//      high-contrast HDR edges (bright specular outlines, lamp cores) ->
+//      history clamped UP beyond 1.0 -> restore emits NEGATIVE HDR values.
+//   2. A negative restore re-enters Lottes_Tonemap as c <= -1, where
+//      c/(1+c) >= 1 -> saturate -> exactly 1.0.
+//   3. The inverse guard rcp(1.00001 - 1.0) then emits a uniform ~1e5 spike,
+//      which overflows FP16 history storage (Inf -> NaN on the next forward
+//      pass, preserved by the 0.925 blend weight) - frame-varying garbage
+//      hugging bright pixels. Bench-confirmed P3.5 artifact.
+// Clamping the pair to [0, TAA_HDR_MAX] closes the loop: max restore ~1e3
+// (no FP16 overflow), negative restores collapse to 0, and the feedback
+// becomes a stable fixed point instead of an amplifier. Normal pixels are
+// unaffected - the clamps only act outside the legitimate domain.
+// (OW parity note: OW avoids this entire class - its SSFX TAA blends in
+// linear HDR space with k-DOP clipping and has no reversible tonemapper.
+// Porting it would revise the locked "TAA stays IX-Ray's" decision.)
+#define TAA_HDR_MAX 1024.0
+#define TAA_T_MAX   (TAA_HDR_MAX / (TAA_HDR_MAX + 1.0))
+
 //From Timothy Lottes
 float3 Lottes_Tonemap(float3 c)
 {
+	c = clamp(c, 0.0f, TAA_HDR_MAX);
 	return saturate(c * rcp(1.0f + c));
 }
 
 float3 Lottes_Tonemap_Inverse(float3 c)
 {
-	c = saturate(c);
+	c = clamp(c, 0.0f, TAA_T_MAX);
 	return c * rcp(1.00001f - c);
 }
 
@@ -178,6 +202,12 @@ float4 main(PSInput I) : SV_Target
 		c_max += max(c_3x3[1], max(c_3x3[3], max(c_3x3[4], max(c_3x3[5], c_3x3[7]))));
 		c_max *= 0.5;
 	#endif
+
+	// OWA: keep the history clamp inside the reversible pair's domain (see
+	// Lottes_Tonemap comment) - c_min/c_max overshoot [0,1) on high-contrast
+	// HDR edges (stddev path) and the soft window can undershoot 0.
+	c_min = clamp(c_min, 0.0f, TAA_T_MAX);
+	c_max = clamp(c_max, 0.0f, TAA_T_MAX);
 
 	//Fetch motion vectors and reproject
 	float2 motion_vector = s_velocity[clamp(I.hpos.xy + depth_offset, 0, scaled_screen_res.xy - 1)].xy * float2(0.5, -0.5);

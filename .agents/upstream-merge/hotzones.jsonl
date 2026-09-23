@@ -22,3 +22,5 @@
 {"pattern": "gamedata/shaders/d3d11/particle.ps.hlsl", "reason": "OW port P3: HDR particle expansion port (dormant until P5)", "added_via": "port-ow-phase-3", "added_date": "2026-09-21"}
 {"pattern": "gamedata/shaders/d3d11/bloom_luminance_3.ps.hlsl", "reason": "OW port P3: H8 dead clamp fixed", "added_via": "port-ow-phase-3", "added_date": "2026-09-21"}
 {"pattern": "src/Layers/xrRender/xrRender_console.cpp", "reason": "OW port P2/P3/P9: cvar surface (tf_contrast, cg/hdr10 params, lumscale 1.0 defaults, debug harness)", "added_via": "port-ow-phase-9", "added_date": "2026-09-21"}
+{"pattern": "gamedata/shaders/d3d11/taa_render.ps.hlsl", "reason": "OW port P3.5: HDR-chain domain-closure fix for the Lottes reversible pair (TAA history feedback artifact)", "added_via": "port-ow-feature", "added_date": "2026-09-23"}
+{"pattern": "gamedata/shaders/d3d11/contrast_adaptive_sharpening.ps.hlsl", "reason": "OW port P3.5: HDR-native CAS (reversible x/(1-x) pair removed, per-channel neighborhood normalization)", "added_via": "port-ow-feature", "added_date": "2026-09-23"}

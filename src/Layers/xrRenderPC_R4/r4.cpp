@@ -129,13 +129,6 @@ static class cl_tex_contrast : public R_constant_setup {
   }
 } binder_tex_contrast;
 
-// OWA: combine_1 channel debug mode
-static class cl_debug_combine : public R_constant_setup {
-  virtual void setup(R_constant *C) {
-    RCache.set_c(C, (float)ps_r__debug_combine, 0, 0, 0);
-  }
-} binder_debug_combine;
-
 // OWA: lumscale trio for the hemisphere's binder compensation (OW L_lumscale
 // uniform layout: x=sun, y=hemi, z=amb)
 static class cl_owa_lumscale : public R_constant_setup {
@@ -298,8 +291,6 @@ void CRender::create() {
       "hemi_parameters", &binder_hemi_parameters);
   dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
       "tex_contrast", &binder_tex_contrast);
-  dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
-      "debug_combine_params", &binder_debug_combine);
   dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(
       "L_lumscale", &binder_owa_lumscale);
   dxRenderDeviceRender::Instance().Resources->RegisterConstantSetup(

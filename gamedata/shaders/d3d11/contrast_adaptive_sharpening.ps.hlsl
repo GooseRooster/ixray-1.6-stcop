@@ -11,18 +11,36 @@ float4 main(v2p_TL Input) : SV_Target
     //  d(e)f
     //  g h i
     
-    float3 a = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(-1, -1)).xyz; a *= rcp(1.0f + a);
-    float3 b = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(0, -1)).xyz; b *= rcp(1.0f + b);
-    float3 c = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(1, -1)).xyz; c *= rcp(1.0f + c);
+    float3 a = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(-1, -1)).xyz;
+    float3 b = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(0, -1)).xyz;
+    float3 c = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(1, -1)).xyz;
 	
-    float3 d = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(-1, 0)).xyz; d *= rcp(1.0f + d);
-    float3 g = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(-1, 1)).xyz; g *= rcp(1.0f + g);
+    float3 d = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(-1, 0)).xyz;
+    float3 g = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(-1, 1)).xyz;
 	
-    float3 e = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0).xyz; e *= rcp(1.0f + e);
+    float3 e = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0).xyz;
 	
-    float3 f = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(1, 0)).xyz; f *= rcp(1.0f + f);
-    float3 h = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(0, 1)).xyz; h *= rcp(1.0f + h);
-    float3 i = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(1, 1)).xyz; i *= rcp(1.0f + i);
+    float3 f = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(1, 0)).xyz;
+    float3 h = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(0, 1)).xyz;
+    float3 i = s_image.SampleLevel(smp_rtlinear, texcoord, 0.0, int2(1, 1)).xyz;
+
+    // OWA: HDR-native normalization (P3.5 follow-up to the TAA fix).
+    // The CAS core assumes [0,1] input (the "2.0 - mxRGB" term). The previous
+    // implementation ran the core in an x/(1+x) compressed domain and restored
+    // with x/(1-x) - the same reversible-map class as the TAA bug: near-
+    // saturated HDR pixels overshoot past the domain, the restore's epsilon
+    // guard emits ~1e4-1e5 spikes, and the internal saturate silently clips
+    // every sharpened highlight. Instead, normalize the neighborhood by its
+    // per-channel max (only when it exceeds 1.0 - LDR neighborhoods keep the
+    // legacy math untouched) and scale back after sharpening. Overshoot in
+    // normalized space is bounded by the amplitude term and maps to a bounded
+    // HDR overshoot - no explosion at any input magnitude.
+    float3 nmax = max(max(max(max(max(max(max(max(a, b), c), d), e), f), g), h), i);
+    float3 scale = max(nmax, 1.0f);
+
+    a /= scale; b /= scale; c /= scale;
+    d /= scale; e /= scale; f /= scale;
+    g /= scale; h /= scale; i /= scale;
 
 	// Soft min and max.
 	//  a b c             b
@@ -38,7 +56,9 @@ float4 main(v2p_TL Input) : SV_Target
     mxRGB += mxRGB2;
 
     // Smooth minimum distance to signal limit divided by smooth max.
-    float3 rcpMRGB = rcp(mxRGB);
+    // OWA: guard rcp against an all-black neighborhood (rcp(0) = inf, and
+    // 0 * inf = NaN downstream).
+    float3 rcpMRGB = rcp(max(mxRGB, 1e-6f));
     float3 ampRGB = saturate(min(mnRGB, 2.0 - mxRGB) * rcpMRGB);    
     
     // Shaping amount of sharpening.
@@ -61,6 +81,7 @@ float4 main(v2p_TL Input) : SV_Target
     
 	outColor = lerp(e, outColor, Sharpening);
 	
-	return float4(outColor * rcp(max(0.00001f, 1.0 - outColor)), 1.0f);
+	// OWA: scale back to HDR domain (see normalization note above)
+	return float4(outColor * scale, 1.0f);
 }
 
